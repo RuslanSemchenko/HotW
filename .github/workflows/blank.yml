@@ -19,7 +19,7 @@ jobs:
       run: |
         sudo apt-get update
         # Устанавливаем необходимые пакеты разработки (dev-пакеты)
-        sudo apt-get install -y libopus-dev libopusfile-dev libcurl4-openssl-dev libsdl2-dev libspeex-dev libspeexdsp-dev
+        sudo apt-get install -y libopus-dev libopusfile-dev libcurl4-openssl-dev libsdl2-dev libspeex-dev libspeexdsp-dev libvorbisfile-dev libopenal-dev
     
     # Существующий шаг
     - name: make
