@@ -35,6 +35,7 @@ static unsigned char ssemask[16] __attribute__((aligned(16))) =
 
 void qsnapvectorsse(vec3_t vec)
 {
+#ifdef __GNUC__
 	__asm__ volatile
 	(
 		"movaps (%0), %%xmm1\n"
@@ -50,7 +51,7 @@ void qsnapvectorsse(vec3_t vec)
 		: "r" (ssemask), "r" (vec)
 		: "memory", "%xmm0", "%xmm1", "%xmm2"
 	);
-	
+#endif
 }
 
 #define QROUNDX87(src) \
@@ -61,6 +62,7 @@ void qsnapvectorsse(vec3_t vec)
 
 void qsnapvectorx87(vec3_t vec)
 {
+#ifdef __GNUC__
 	__asm__ volatile
 	(
 		QROUNDX87("(%0)")
@@ -70,4 +72,5 @@ void qsnapvectorx87(vec3_t vec)
 		: "r" (vec)
 		: "memory"
 	);
+#endif
 }

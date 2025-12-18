@@ -32,12 +32,14 @@ long qftolsse(float f)
 {
   long retval;
   
+#ifdef __GNUC__
   __asm__ volatile
   (
     "cvttss2si %1, %0\n"
     : "=r" (retval)
     : "x" (f)
   );
+#endif
   
   return retval;
 }
@@ -46,6 +48,7 @@ int qvmftolsse(void)
 {
   int retval;
   
+#ifdef __GNUC__
   __asm__ volatile
   (
     "movss (" EDI ", " EBX ", 4), %%xmm0\n"
@@ -54,6 +57,7 @@ int qvmftolsse(void)
     :
     : "%xmm0"
   );
+#endif
   
   return retval;
 }
@@ -63,6 +67,7 @@ long qftolx87(float f)
   long retval;
   unsigned short oldcw = 0;
 
+#ifdef __GNUC__
   __asm__ volatile
   (
     "fnstcw %2\n"
@@ -74,7 +79,8 @@ long qftolx87(float f)
     : "=r" (retval)
     : "m" (f), "m" (oldcw), "m" (fpucw)
   );
-  
+#endif
+
   return retval;
 }
 
@@ -83,6 +89,7 @@ int qvmftolx87(void)
   int retval;
   unsigned short oldcw = 0;
 
+#ifdef __GNUC__
   __asm__ volatile
   (
     "fnstcw %1\n"
@@ -94,6 +101,7 @@ int qvmftolx87(void)
     : "=r" (retval)
     : "m" (oldcw), "m" (fpucw)
   );
+#endif
   
   return retval;
 }
