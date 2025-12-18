@@ -722,7 +722,7 @@ qboolean G_OpenFileAiNode(const char *filename){
 		return qfalse;
 	}
 	if ( len > MAX_AINODEFILE ) {
-		G_Printf("ai file too big: %s! %d > " STRING(AINODE_FILE_MAX_SIZE) "\n", filename);
+		G_Printf("ai file too big: %s! %d > " STRING(AINODE_FILE_MAX_SIZE) "\n", filename, len);
 		trap_FS_FCloseFile( file );
 		return qfalse;
 	}
@@ -890,7 +890,7 @@ qboolean G_ParseHitFile(hit_data_t *hit_data, int part){
 #else
 		G_Printf(
 #endif
-		"no valid hitfile: %s\nident: %i\nframes: %i\nmeshes: %i\n%i %i %i %i %i", name,
+		"no valid hitfile: %s\nident: %i\nframes: %i\nmeshes: %i\n%zu %zu %zu %zu %zu", name,
 		(int)header.ident, (int)header.numFrames, (int)header.numMeshes,
 		sizeof(header.ident), sizeof(header.numFrames), sizeof(header.numMeshes),
 		sizeof(short), sizeof(int));

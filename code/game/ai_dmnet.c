@@ -33,6 +33,8 @@
 #include "syn.h"			//synonyms
 #include "match.h"			//string matching types and vars
 
+int BotBRCarryingMoneyBag(bot_state_t *bs);
+
 // for the voice chats
 #include "../../ui/menudef.h"
 
@@ -67,7 +69,6 @@ void BotDumpNodeSwitches(bot_state_t *bs) {
 	for (i = 0; i < numnodeswitches; i++) {
 		BotAI_Print(PRT_MESSAGE, "%s", nodeswitch[i]);
 	}
-	BotAI_Print(PRT_FATAL, "");
 }
 
 /*

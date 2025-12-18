@@ -137,7 +137,7 @@ qboolean CG_ParseMusicFile(void){
 	for(i=0;i<trackInfoNum;i++){
 
 		token = COM_ParseExt(p, qtrue);
-		Com_sprintf(trackInfo[i].path,sizeof(trackInfo[i].path), token);
+		Q_strncpyz(trackInfo[i].path, token, sizeof(trackInfo[i].path));
 
 		token = COM_ParseExt(p, qtrue);
 		trackInfo[i].length = atoi(token);

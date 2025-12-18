@@ -6084,7 +6084,7 @@ static void UI_BuildQ3Model_List( void )
 			if (Q_stricmpn(skinname, "icon_", 5) == 0)
 			{
 				if (Q_stricmp(skinname, "icon_default") == 0) {
-					Com_sprintf( uiInfo.q3HeadNames[uiInfo.q3HeadCount], sizeof(uiInfo.q3HeadNames[uiInfo.q3HeadCount]), dirptr);
+					Q_strncpyz( uiInfo.q3HeadNames[uiInfo.q3HeadCount], dirptr, sizeof(uiInfo.q3HeadNames[uiInfo.q3HeadCount]));
 				} else {
 					Com_sprintf( uiInfo.q3HeadNames[uiInfo.q3HeadCount], sizeof(uiInfo.q3HeadNames[uiInfo.q3HeadCount]), "%s/%s",dirptr, skinname + 5);
 				}

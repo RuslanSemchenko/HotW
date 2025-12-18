@@ -22,6 +22,7 @@ endif()
 option(BUILD_CLIENT "Build client executable" ON)
 option(BUILD_SERVER "Build dedicated server" ON)
 option(BUILD_GAME_MODULES "Build game DLL modules" ON)
+option(BUILD_RENDERER_OPENGL2 "Build OpenGL2 renderer" ON)
 
 option(USE_OPENAL "Use OpenAL" ON)
 option(USE_CURL "Use CURL" ON)
@@ -69,7 +70,7 @@ endif()
 # Output layout
 # ============================================================
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${BASEGAME})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # ============================================================
@@ -156,16 +157,18 @@ find_package(OpenGL REQUIRED)
 find_package(PkgConfig REQUIRED) 
 
 if(USE_CURL)
-    find_package(CURL CONFIG REQUIRED)
+    find_package(CURL REQUIRED)
 endif()
 if(USE_OPENAL)
     find_package(OpenAL CONFIG REQUIRED)
 endif()
 if(USE_CODEC_VORBIS)
-    find_package(Vorbis CONFIG REQUIRED)
+    pkg_check_modules(VORBIS_PKG REQUIRED vorbis vorbisfile)
+    set(VORBIS_LIBRARIES ${VORBIS_PKG_LIBRARIES})
 endif()
 if(USE_FREETYPE)
-    find_package(Freetype CONFIG REQUIRED)
+    pkg_check_modules(FREETYPE_PKG REQUIRED freetype2)
+    set(FREETYPE_LIBRARIES ${FREETYPE_PKG_LIBRARIES})
 endif()
 
 # =================================================================
@@ -173,25 +176,14 @@ endif()
 # =================================================================
 
 if(USE_CODEC_OPUS OR USE_CODEC_VORBIS)
-    find_package(Ogg CONFIG REQUIRED)
+    pkg_check_modules(OGG_PKG REQUIRED ogg)
+    set(OGG_LIBRARIES ${OGG_PKG_LIBRARIES})
 endif()
 
 # Opus codec support (for audio files)
 if(USE_CODEC_OPUS)
-    find_package(Opus CONFIG REQUIRED)
-    find_package(OpusFile CONFIG REQUIRED)
-
-    set(OPUS_LIBRARIES 
-        Opus::opus 
-        OpusFile::opusfile 
-        Ogg::ogg # Ogg необходим для Opus
-    )
-    
-    if(NOT TARGET Opus::opus OR NOT TARGET OpusFile::opusfile)
-        pkg_check_modules(OPUS_PKG REQUIRED opus opusfile ogg)
-        set(OPUS_LIBRARIES ${OPUS_PKG_LIBRARIES})
-    endif()
-
+    pkg_check_modules(OPUS_PKG REQUIRED opus opusfile)
+    set(OPUS_LIBRARIES ${OPUS_PKG_LIBRARIES} ${OGG_LIBRARIES})
 endif()
 
 # =================================================================
@@ -255,9 +247,9 @@ if(BUILD_CLIENT)
 
         # System
         code/sys/sys_main.c
-        code/sys/sys_win32.c
         code/sys/con_log.c
-        code/sys/con_passive.c
+        code/sys/sys_unix.c
+        code/sys/con_tty.c
         code/sys/win_resource.rc
     )
 
@@ -305,7 +297,7 @@ if(BUILD_CLIENT)
     # USE_VOIP отключен, поэтому не добавляется в определения
 
     target_compile_definitions(${CLIENTBIN} PRIVATE ${CLIENT_COMPILE_DEFS})
-    target_include_directories(${CLIENTBIN} PRIVATE ${ZLIB_INCLUDE_DIRS})
+    target_include_directories(${CLIENTBIN} PRIVATE ${ZLIB_INCLUDE_DIRS} ${VORBIS_PKG_INCLUDE_DIRS} ${FREETYPE_PKG_INCLUDE_DIRS} ${OPUS_PKG_INCLUDE_DIRS})
 
     # ============================================================
     # БЛОК ЛИНКОВКИ SPEEX/VOIP ПОЛНОСТЬЮ УДАЛЕН
@@ -317,11 +309,16 @@ if(BUILD_CLIENT)
         SDL2::SDL2main
         SDL2::SDL2
         ${OPENGL_LIBRARIES}
-        ws2_32
-        winmm
-        gdi32
-        ole32
+        m
     )
+    if(WIN32)
+        target_link_libraries(${CLIENTBIN} PRIVATE
+            ws2_32
+            winmm
+            gdi32
+            ole32
+        )
+    endif()
     # ============================================================
     
     if(USE_OPENAL)
@@ -335,13 +332,7 @@ if(BUILD_CLIENT)
     endif()
 
     if(USE_CODEC_VORBIS)
-        # Vorbis targets (от vcpkg)
-        target_link_libraries(${CLIENTBIN} PRIVATE 
-            Vorbis::vorbis 
-            Vorbis::vorbisfile 
-            Vorbis::vorbisenc
-            Ogg::ogg # Явно добавляем OGG
-        )
+        target_link_libraries(${CLIENTBIN} PRIVATE ${VORBIS_LIBRARIES})
     endif()
 
     if(USE_CODEC_OPUS)
@@ -351,7 +342,7 @@ if(BUILD_CLIENT)
 
     if(USE_FREETYPE)
         target_compile_definitions(${CLIENTBIN} PRIVATE BUILD_FREETYPE)
-        target_link_libraries(${CLIENTBIN} PRIVATE Freetype::Freetype)
+        target_link_libraries(${CLIENTBIN} PRIVATE ${FREETYPE_LIBRARIES})
     endif()
 endif()
 
@@ -380,9 +371,9 @@ if(BUILD_SERVER)
         code/qcommon/puff.c
 
         code/sys/sys_main.c
-        code/sys/sys_win32.c
+        code/sys/sys_unix.c
         code/sys/con_log.c
-        code/sys/con_win32.c
+        code/sys/con_tty.c
         code/sys/win_resource.rc
     )
 
@@ -420,23 +411,22 @@ if(BUILD_SERVER)
     # USE_VOIP отключен, поэтому не добавляется в определения
     
     target_compile_definitions(${SERVERBIN} PRIVATE ${SERVER_COMPILE_DEFS})
-    target_include_directories(${SERVERBIN} PRIVATE ${ZLIB_INCLUDE_DIRS})
+    target_include_directories(${SERVERBIN} PRIVATE ${ZLIB_INCLUDE_DIRS} ${VORBIS_PKG_INCLUDE_DIRS} ${OPUS_PKG_INCLUDE_DIRS})
 
     target_link_libraries(${SERVERBIN} PRIVATE
         ZLIB::ZLIB
-        ws2_32
-        winmm
-        psapi
+        m
     )
+    if(WIN32)
+        target_link_libraries(${SERVERBIN} PRIVATE
+            ws2_32
+            winmm
+            psapi
+        )
+    endif()
 
     if(USE_CODEC_VORBIS)
-        # Vorbis targets (от vcpkg)
-        target_link_libraries(${SERVERBIN} PRIVATE 
-            Vorbis::vorbis 
-            Vorbis::vorbisfile 
-            Vorbis::vorbisenc
-            Ogg::ogg # Явно добавляем OGG
-        )
+        target_link_libraries(${SERVERBIN} PRIVATE ${VORBIS_LIBRARIES})
     endif()
 
     if(USE_CODEC_OPUS)
@@ -559,10 +549,7 @@ if(BUILD_CLIENT)
     # Common renderer sources
     set(RENDERER_COMMON_SOURCES
         code/renderercommon/tr_font.c
-        code/renderercommon/tr_image.c
-        code/renderercommon/tr_image_png.c
-        code/renderercommon/tr_image_jpg.c
-        code/renderercommon/tr_image_bmp.c
+
         code/renderercommon/tr_image_tga.c
         code/renderercommon/tr_image_pcx.c
         code/renderercommon/tr_noise.c
@@ -602,6 +589,7 @@ if(BUILD_CLIENT)
     )
     set_target_properties(renderer_opengl1 PROPERTIES PREFIX "")
     target_compile_definitions(renderer_opengl1 PRIVATE USE_RENDERER_DLOPEN)
+    target_include_directories(renderer_opengl1 PRIVATE ${ZLIB_INCLUDE_DIRS} ${FREETYPE_PKG_INCLUDE_DIRS})
     target_link_libraries(renderer_opengl1 PRIVATE
         ZLIB::ZLIB
         SDL2::SDL2
@@ -609,7 +597,7 @@ if(BUILD_CLIENT)
     )
     if(USE_FREETYPE)
         target_compile_definitions(renderer_opengl1 PRIVATE BUILD_FREETYPE)
-        target_link_libraries(renderer_opengl1 PRIVATE Freetype::Freetype)
+        target_link_libraries(renderer_opengl1 PRIVATE ${FREETYPE_LIBRARIES})
     endif()
 
     # OpenGL2 renderer
@@ -649,6 +637,7 @@ if(BUILD_CLIENT)
         )
         set_target_properties(renderer_opengl2 PROPERTIES PREFIX "")
         target_compile_definitions(renderer_opengl2 PRIVATE USE_RENDERER_DLOPEN)
+        target_include_directories(renderer_opengl2 PRIVATE ${ZLIB_INCLUDE_DIRS} ${FREETYPE_PKG_INCLUDE_DIRS})
         target_link_libraries(renderer_opengl2 PRIVATE
             ZLIB::ZLIB
             SDL2::SDL2
@@ -656,6 +645,7 @@ if(BUILD_CLIENT)
         )
         if(USE_FREETYPE)
             target_compile_definitions(renderer_opengl2 PRIVATE BUILD_FREETYPE)
-            target_link_libraries(renderer_opengl2 PRIVATE Freetype::Freetype)
+            target_link_libraries(renderer_opengl2 PRIVATE ${FREETYPE_LIBRARIES})
         endif()
     endif()
+endif()

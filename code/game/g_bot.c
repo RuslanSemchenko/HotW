@@ -55,6 +55,7 @@ G_ParseInfos
 int G_ParseInfos( char *buf, int max, char *infos[] ) {
 	char	*token;
 	int		count;
+	int		len;
 	char	key[MAX_TOKEN_CHARS];
 	char	info[MAX_INFO_STRING];
 
