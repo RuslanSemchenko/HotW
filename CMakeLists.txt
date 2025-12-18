@@ -189,6 +189,19 @@ endif()
 # ============================================================
 # CLIENT
 # ============================================================
+if(WIN32)
+    set(CLIENT_SYS_SOURCES
+        code/sys/con_passive.c
+        code/sys/sys_win32.c
+    )
+else()
+    set(CLIENT_SYS_SOURCES
+        code/sys/con_passive.c
+        code/sys/sys_unix.c
+        code/sys/con_tty.c
+    )
+endif()
+
 if(BUILD_CLIENT)
     add_executable(${CLIENTBIN}
         ${COMMON_SOURCES}
@@ -243,13 +256,7 @@ if(BUILD_CLIENT)
         # System
         code/sys/sys_main.c
         code/sys/con_log.c
-        if(WIN32)
-            code/sys/con_passive.c
-            code/sys/sys_win32.c
-        else()
-            code/sys/sys_unix.c
-            code/sys/con_tty.c
-        endif()
+        ${CLIENT_SYS_SOURCES}
         code/sys/win_resource.rc
     )
 
@@ -337,6 +344,18 @@ if(BUILD_CLIENT)
     endif()
 endif()
 
+if(WIN32)
+    set(SERVER_SYS_SOURCES
+        code/sys/sys_win32.c
+        code/sys/con_passive.c
+    )
+else()
+    set(SERVER_SYS_SOURCES
+        code/sys/sys_unix.c
+        code/sys/con_tty.c
+    )
+endif()
+
 # ============================================================
 # SERVER
 # ============================================================
@@ -362,13 +381,7 @@ if(BUILD_SERVER)
         code/qcommon/puff.c
 
         code/sys/sys_main.c
-        if(WIN32)
-            code/sys/sys_win32.c
-            code/sys/con_passive.c
-        else()
-            code/sys/sys_unix.c
-            code/sys/con_tty.c
-        endif()
+        ${SERVER_SYS_SOURCES}
         code/sys/con_log.c
         code/sys/win_resource.rc
     )
