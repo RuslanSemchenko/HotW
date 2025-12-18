@@ -2906,7 +2906,7 @@ bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
 	bot_goal_t goal;
     qboolean goback = qtrue;
 
-	attackentity = bs->enemy;
+	memset(&moveresult, 0, sizeof(bot_moveresult_t));
 	//get the enemy entity info
 	BotEntityInfo(attackentity, &entinfo);
 	//direction towards the enemy

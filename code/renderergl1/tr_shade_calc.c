@@ -28,13 +28,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #ifdef _MSC_VER
-static float roundf(float numb)
-{
-    float integ = ceilf(numb);
-    if (numb > 0)
-        return integ - numb > 0.5f ? integ - 1.0f : integ;
-    return integ - numb >= 0.5f ? integ - 1.0f : integ;
-}
+// roundf is available in MSVC 2013+
+// static float roundf(float numb)
+// {
+//     float integ = ceilf(numb);
+//     if (numb > 0)
+//         return integ - numb > 0.5f ? integ - 1.0f : integ;
+//     return integ - numb >= 0.5f ? integ - 1.0f : integ;
+// }
 #endif
 
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ ri.ftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))

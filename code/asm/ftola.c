@@ -30,7 +30,7 @@ static const unsigned short fpucw = 0x0C7F;
 
 long qftolsse(float f)
 {
-  long retval;
+  long retval = (long)f;
   
 #ifdef __GNUC__
   __asm__ volatile
@@ -46,7 +46,7 @@ long qftolsse(float f)
 
 int qvmftolsse(void)
 {
-  int retval;
+  int retval = 0;
   
 #ifdef __GNUC__
   __asm__ volatile
@@ -64,7 +64,7 @@ int qvmftolsse(void)
 
 long qftolx87(float f)
 {
-  long retval;
+  long retval = (long)f;
   unsigned short oldcw = 0;
 
 #ifdef __GNUC__
@@ -86,7 +86,7 @@ long qftolx87(float f)
 
 int qvmftolx87(void)
 {
-  int retval;
+  int retval = 0;
   unsigned short oldcw = 0;
 
 #ifdef __GNUC__
