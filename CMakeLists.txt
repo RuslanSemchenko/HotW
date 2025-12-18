@@ -551,3 +551,111 @@ if(BUILD_GAME_MODULES)
     target_compile_definitions(ui PRIVATE UI)
     target_include_directories(ui PRIVATE ${ZLIB_INCLUDE_DIRS})
 endif()
+
+# ============================================================
+# RENDERERS
+# ============================================================
+if(BUILD_CLIENT)
+    # Common renderer sources
+    set(RENDERER_COMMON_SOURCES
+        code/renderercommon/tr_font.c
+        code/renderercommon/tr_image.c
+        code/renderercommon/tr_image_png.c
+        code/renderercommon/tr_image_jpg.c
+        code/renderercommon/tr_image_bmp.c
+        code/renderercommon/tr_image_tga.c
+        code/renderercommon/tr_image_pcx.c
+        code/renderercommon/tr_noise.c
+        code/qcommon/q_shared.c
+        code/qcommon/q_math.c
+        code/qcommon/puff.c
+    )
+
+    # OpenGL1 renderer
+    add_library(renderer_opengl1 SHARED
+        ${RENDERER_COMMON_SOURCES}
+        code/renderergl1/tr_animation.c
+        code/renderergl1/tr_backend.c
+        code/renderergl1/tr_bsp.c
+        code/renderergl1/tr_cmds.c
+        code/renderergl1/tr_curve.c
+        code/renderergl1/tr_flares.c
+        code/renderergl1/tr_image.c
+        code/renderergl1/tr_init.c
+        code/renderergl1/tr_light.c
+        code/renderergl1/tr_main.c
+        code/renderergl1/tr_marks.c
+        code/renderergl1/tr_mesh.c
+        code/renderergl1/tr_model.c
+        code/renderergl1/tr_model_iqm.c
+        code/renderergl1/tr_scene.c
+        code/renderergl1/tr_shade.c
+        code/renderergl1/tr_shade_calc.c
+        code/renderergl1/tr_shader.c
+        code/renderergl1/tr_shadows.c
+        code/renderergl1/tr_sky.c
+        code/renderergl1/tr_surface.c
+        code/renderergl1/tr_world.c
+        code/sdl/sdl_gamma.c
+        code/sdl/sdl_glimp.c
+        code/renderergl1/tr_subs.c
+    )
+    set_target_properties(renderer_opengl1 PROPERTIES PREFIX "")
+    target_compile_definitions(renderer_opengl1 PRIVATE USE_RENDERER_DLOPEN)
+    target_link_libraries(renderer_opengl1 PRIVATE
+        ZLIB::ZLIB
+        SDL2::SDL2
+        ${OPENGL_LIBRARIES}
+    )
+    if(USE_FREETYPE)
+        target_compile_definitions(renderer_opengl1 PRIVATE BUILD_FREETYPE)
+        target_link_libraries(renderer_opengl1 PRIVATE Freetype::Freetype)
+    endif()
+
+    # OpenGL2 renderer
+    if(BUILD_RENDERER_OPENGL2)
+        add_library(renderer_opengl2 SHARED
+            ${RENDERER_COMMON_SOURCES}
+            code/renderergl2/tr_animation.c
+            code/renderergl2/tr_backend.c
+            code/renderergl2/tr_bsp.c
+            code/renderergl2/tr_cmds.c
+            code/renderergl2/tr_curve.c
+            code/renderergl2/tr_extramath.c
+            code/renderergl2/tr_extensions.c
+            code/renderergl2/tr_fbo.c
+            code/renderergl2/tr_flares.c
+            code/renderergl2/tr_glsl.c
+            code/renderergl2/tr_image.c
+            code/renderergl2/tr_init.c
+            code/renderergl2/tr_light.c
+            code/renderergl2/tr_main.c
+            code/renderergl2/tr_marks.c
+            code/renderergl2/tr_mesh.c
+            code/renderergl2/tr_model.c
+            code/renderergl2/tr_model_iqm.c
+            code/renderergl2/tr_postprocess.c
+            code/renderergl2/tr_scene.c
+            code/renderergl2/tr_shade.c
+            code/renderergl2/tr_shade_calc.c
+            code/renderergl2/tr_shader.c
+            code/renderergl2/tr_shadows.c
+            code/renderergl2/tr_sky.c
+            code/renderergl2/tr_surface.c
+            code/renderergl2/tr_vbo.c
+            code/renderergl2/tr_world.c
+            code/sdl/sdl_gamma.c
+            code/sdl/sdl_glimp.c
+        )
+        set_target_properties(renderer_opengl2 PROPERTIES PREFIX "")
+        target_compile_definitions(renderer_opengl2 PRIVATE USE_RENDERER_DLOPEN)
+        target_link_libraries(renderer_opengl2 PRIVATE
+            ZLIB::ZLIB
+            SDL2::SDL2
+            ${OPENGL_LIBRARIES}
+        )
+        if(USE_FREETYPE)
+            target_compile_definitions(renderer_opengl2 PRIVATE BUILD_FREETYPE)
+            target_link_libraries(renderer_opengl2 PRIVATE Freetype::Freetype)
+        endif()
+    endif()

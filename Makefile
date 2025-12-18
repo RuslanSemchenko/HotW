@@ -1220,7 +1220,7 @@ release:
 	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
 
 ifneq ($(call bin_path, tput),)
-  TERM_COLUMNS=$(shell echo $$((`tput cols`-4)))
+  TERM_COLUMNS=$(shell tput cols 2>/dev/null | awk '{if ($$1 > 4) print $$1 - 4; else print 76}')
 else
   TERM_COLUMNS=76
 endif
