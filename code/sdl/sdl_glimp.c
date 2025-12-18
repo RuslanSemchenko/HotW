@@ -9,8 +9,15 @@
 #ifndef WINGDIAPI
 #define WINGDIAPI __declspec(dllimport)
 #endif
-#   include <GL/gl.h>
-#   include <GL/glu.h>
+#ifndef CALLBACK
+#define CALLBACK __stdcall
+#endif
+#ifndef GLAPIENTRY
+#define GLAPIENTRY APIENTRY
+#endif
+#ifndef GLAPI
+#define GLAPI extern
+#endif
 #   include <SDL2/SDL_opengl.h>
 #endif
 
