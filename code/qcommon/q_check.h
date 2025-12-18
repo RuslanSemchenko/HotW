@@ -23,7 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef Q_CHECK_H
 #define Q_CHECK_H
 
-typedef unsigned long int chk_ref;
+#include <stdint.h>
+
+typedef uintptr_t chk_ref;
 
 static ID_INLINE void Com_CheckCvar(cvar_t *cvar) {
 	Com_Printf(PRODUCT_NAME " online checks on\n");

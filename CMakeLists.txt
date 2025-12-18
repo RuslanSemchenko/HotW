@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.21)
 
 project(HeartOfTheWest VERSION 1.0 LANGUAGES C CXX)
 
-# Enable MASM for MSVC if needed (for x64 assembly files)
-if(MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-    enable_language(ASM_MASM)
-endif()
-
 # ============================================================
 # vcpkg toolchain
 # ============================================================
@@ -248,8 +243,13 @@ if(BUILD_CLIENT)
         # System
         code/sys/sys_main.c
         code/sys/con_log.c
-        code/sys/sys_unix.c
-        code/sys/con_tty.c
+        if(WIN32)
+            code/sys/con_passive.c
+            code/sys/sys_win32.c
+        else()
+            code/sys/sys_unix.c
+            code/sys/con_tty.c
+        endif()
         code/sys/win_resource.rc
     )
 
@@ -266,19 +266,10 @@ if(BUILD_CLIENT)
     # Add x86_64 specific files
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         if(MSVC)
-            # For MSVC, use MASM .asm files
+            # For MSVC, use .c files with inline assembly (asm files have syntax issues with MASM)
             target_sources(${CLIENTBIN} PRIVATE
-                code/asm/snapvector.asm
-                code/asm/ftola.asm
-                code/asm/vm_x86_64.asm
-            )
-            # Define idx64 for x64 builds in MASM files
-            set_source_files_properties(
-                code/asm/snapvector.asm
-                code/asm/ftola.asm
-                code/asm/vm_x86_64.asm
-                PROPERTIES
-                COMPILE_FLAGS "/Didx64=1"
+                code/asm/snapvector.c
+                code/asm/ftola.c
             )
         else()
             # For GCC/Clang, use .c files with inline assembly
@@ -371,28 +362,24 @@ if(BUILD_SERVER)
         code/qcommon/puff.c
 
         code/sys/sys_main.c
-        code/sys/sys_unix.c
+        if(WIN32)
+            code/sys/sys_win32.c
+            code/sys/con_passive.c
+        else()
+            code/sys/sys_unix.c
+            code/sys/con_tty.c
+        endif()
         code/sys/con_log.c
-        code/sys/con_tty.c
         code/sys/win_resource.rc
     )
 
     # Add x86_64 specific files
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         if(MSVC)
-            # For MSVC, use MASM .asm files
+            # For MSVC, use .c files with inline assembly (asm files have syntax issues with MASM)
             target_sources(${SERVERBIN} PRIVATE
-                code/asm/snapvector.asm
-                code/asm/ftola.asm
-                code/asm/vm_x86_64.asm
-            )
-            # Define idx64 for x64 builds in MASM files
-            set_source_files_properties(
-                code/asm/snapvector.asm
-                code/asm/ftola.asm
-                code/asm/vm_x86_64.asm
-                PROPERTIES
-                COMPILE_FLAGS "/Didx64=1"
+                code/asm/snapvector.c
+                code/asm/ftola.c
             )
         else()
             # For GCC/Clang, use .c files with inline assembly
