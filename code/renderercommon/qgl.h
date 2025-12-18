@@ -778,7 +778,7 @@ extern void (APIENTRY * qglDrawBuffersARB)(GLsizei n, const GLenum *bufs);
 #define ERROR_INVALID_PROFILE_ARB                 0x2096
 #endif
 
-extern          HGLRC(APIENTRY * qwglCreateContextAttribsARB) (HDC hdC, HGLRC hShareContext, const int *attribList);
+extern          HGLRC(* qwglCreateContextAttribsARB) (HDC hdC, HGLRC hShareContext, const int *attribList);
 #endif
 
 #if 0 //defined(__linux__)
