@@ -3,6 +3,12 @@
 #else
 #	include <SDL2/SDL.h>
 #   include <SDL2/SDL_video.h>
+#ifndef APIENTRY
+#define APIENTRY __stdcall
+#endif
+#ifndef WINGDIAPI
+#define WINGDIAPI __declspec(dllimport)
+#endif
 #   include <GL/gl.h>
 #   include <GL/glu.h>
 #   include <SDL2/SDL_opengl.h>

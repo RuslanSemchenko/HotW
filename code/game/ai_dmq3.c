@@ -2897,7 +2897,7 @@ BotAttackMove
 ==================
 */
 bot_moveresult_t BotAttackMove(bot_state_t *bs, int tfl) {
-	int movetype, i, attackentity;
+	int movetype, i, attackentity = 0;
 	float attack_skill, jumper, croucher, dist, strafechange_time;
 	float attack_dist, attack_range;
 	vec3_t forward, backward, sideward, hordir, up = {0, 0, 1};
