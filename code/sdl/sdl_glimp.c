@@ -1,10 +1,8 @@
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL.h"
 #else
-#	include <SDL2/SDL.h>
-#   include <SDL2/SDL_video.h>
 #ifndef APIENTRY
-#define APIENTRY __stdcall
+#define APIENTRY __cdecl
 #endif
 #ifndef WINGDIAPI
 #define WINGDIAPI __declspec(dllimport)
@@ -15,9 +13,11 @@
 #ifndef GLAPIENTRY
 #define GLAPIENTRY APIENTRY
 #endif
-#ifndef GLAPI
-#define GLAPI extern
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
 #endif
+#	include <SDL2/SDL.h>
+#   include <SDL2/SDL_video.h>
 #   include <SDL2/SDL_opengl.h>
 #endif
 
