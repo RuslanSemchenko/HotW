@@ -162,8 +162,7 @@ if(USE_CODEC_VORBIS)
     set(VORBIS_LIBRARIES ${VORBIS_PKG_LIBRARIES})
 endif()
 if(USE_FREETYPE)
-    pkg_check_modules(FREETYPE_PKG REQUIRED freetype2)
-    set(FREETYPE_LIBRARIES ${FREETYPE_PKG_LIBRARIES})
+    find_package(Freetype REQUIRED)
 endif()
 
 # =================================================================
@@ -295,7 +294,10 @@ if(BUILD_CLIENT)
     # USE_VOIP отключен, поэтому не добавляется в определения
 
     target_compile_definitions(${CLIENTBIN} PRIVATE ${CLIENT_COMPILE_DEFS})
-    target_include_directories(${CLIENTBIN} PRIVATE ${ZLIB_INCLUDE_DIRS} ${VORBIS_PKG_INCLUDE_DIRS} ${FREETYPE_PKG_INCLUDE_DIRS} ${OPUS_PKG_INCLUDE_DIRS})
+    target_include_directories(${CLIENTBIN} PRIVATE ${ZLIB_INCLUDE_DIRS} ${VORBIS_PKG_INCLUDE_DIRS} ${OPUS_PKG_INCLUDE_DIRS})
+    if(USE_FREETYPE)
+        target_include_directories(${CLIENTBIN} PRIVATE ${FREETYPE_INCLUDE_DIRS})
+    endif()
 
     # ============================================================
     # БЛОК ЛИНКОВКИ SPEEX/VOIP ПОЛНОСТЬЮ УДАЛЕН
@@ -307,10 +309,13 @@ if(BUILD_CLIENT)
         SDL2::SDL2main
         SDL2::SDL2
         ${OPENGL_LIBRARIES}
-        m
     )
+    if(NOT WIN32)
+        target_link_libraries(${CLIENTBIN} PRIVATE m)
+    endif()
     if(WIN32)
         target_link_libraries(${CLIENTBIN} PRIVATE
+            m
             ws2_32
             winmm
             gdi32
@@ -340,7 +345,7 @@ if(BUILD_CLIENT)
 
     if(USE_FREETYPE)
         target_compile_definitions(${CLIENTBIN} PRIVATE BUILD_FREETYPE)
-        target_link_libraries(${CLIENTBIN} PRIVATE ${FREETYPE_LIBRARIES})
+        target_link_libraries(${CLIENTBIN} PRIVATE Freetype::Freetype)
     endif()
 endif()
 
@@ -415,10 +420,13 @@ if(BUILD_SERVER)
 
     target_link_libraries(${SERVERBIN} PRIVATE
         ZLIB::ZLIB
-        m
     )
+    if(NOT WIN32)
+        target_link_libraries(${SERVERBIN} PRIVATE m)
+    endif()
     if(WIN32)
         target_link_libraries(${SERVERBIN} PRIVATE
+            m
             ws2_32
             winmm
             psapi
@@ -589,7 +597,10 @@ if(BUILD_CLIENT)
     )
     set_target_properties(renderer_opengl1 PROPERTIES PREFIX "")
     target_compile_definitions(renderer_opengl1 PRIVATE USE_RENDERER_DLOPEN)
-    target_include_directories(renderer_opengl1 PRIVATE ${ZLIB_INCLUDE_DIRS} ${FREETYPE_PKG_INCLUDE_DIRS})
+    target_include_directories(renderer_opengl1 PRIVATE ${ZLIB_INCLUDE_DIRS})
+    if(USE_FREETYPE)
+        target_include_directories(renderer_opengl1 PRIVATE ${FREETYPE_INCLUDE_DIRS})
+    endif()
     target_link_libraries(renderer_opengl1 PRIVATE
         ZLIB::ZLIB
         SDL2::SDL2
@@ -597,7 +608,7 @@ if(BUILD_CLIENT)
     )
     if(USE_FREETYPE)
         target_compile_definitions(renderer_opengl1 PRIVATE BUILD_FREETYPE)
-        target_link_libraries(renderer_opengl1 PRIVATE ${FREETYPE_LIBRARIES})
+        target_link_libraries(renderer_opengl1 PRIVATE Freetype::Freetype)
     endif()
 
     # OpenGL2 renderer
@@ -637,15 +648,18 @@ if(BUILD_CLIENT)
         )
         set_target_properties(renderer_opengl2 PROPERTIES PREFIX "")
         target_compile_definitions(renderer_opengl2 PRIVATE USE_RENDERER_DLOPEN)
-        target_include_directories(renderer_opengl2 PRIVATE ${ZLIB_INCLUDE_DIRS} ${FREETYPE_PKG_INCLUDE_DIRS})
+        target_include_directories(renderer_opengl2 PRIVATE ${ZLIB_INCLUDE_DIRS})
+        if(USE_FREETYPE)
+            target_include_directories(renderer_opengl2 PRIVATE ${FREETYPE_INCLUDE_DIRS})
+        endif()
         target_link_libraries(renderer_opengl2 PRIVATE
             ZLIB::ZLIB
             SDL2::SDL2
             ${OPENGL_LIBRARIES}
-        )
+        )Freetype::Freetype
         if(USE_FREETYPE)
             target_compile_definitions(renderer_opengl2 PRIVATE BUILD_FREETYPE)
-            target_link_libraries(renderer_opengl2 PRIVATE ${FREETYPE_LIBRARIES})
+            target_link_libraries(renderer_opengl2 PRIVATE Freetype::Freetype)
         endif()
     endif()
 endif()
