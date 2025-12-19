@@ -165,6 +165,10 @@ if(USE_FREETYPE)
     find_package(Freetype REQUIRED)
 endif()
 
+# Image libraries for renderer
+find_package(JPEG REQUIRED)
+find_package(PNG REQUIRED)
+
 # =================================================================
 # КОДЕКИ (OGG, VORBIS, OPUS)
 # =================================================================
@@ -315,7 +319,6 @@ if(BUILD_CLIENT)
     endif()
     if(WIN32)
         target_link_libraries(${CLIENTBIN} PRIVATE
-            m
             ws2_32
             winmm
             gdi32
@@ -426,7 +429,6 @@ if(BUILD_SERVER)
     endif()
     if(WIN32)
         target_link_libraries(${SERVERBIN} PRIVATE
-            m
             ws2_32
             winmm
             psapi
@@ -557,7 +559,9 @@ if(BUILD_CLIENT)
     # Common renderer sources
     set(RENDERER_COMMON_SOURCES
         code/renderercommon/tr_font.c
-
+        code/renderercommon/tr_image_bmp.c
+        code/renderercommon/tr_image_jpg.c
+        code/renderercommon/tr_image_png.c
         code/renderercommon/tr_image_tga.c
         code/renderercommon/tr_image_pcx.c
         code/renderercommon/tr_noise.c
@@ -605,6 +609,8 @@ if(BUILD_CLIENT)
         ZLIB::ZLIB
         SDL2::SDL2
         ${OPENGL_LIBRARIES}
+        JPEG::JPEG
+        PNG::PNG
     )
     if(USE_FREETYPE)
         target_compile_definitions(renderer_opengl1 PRIVATE BUILD_FREETYPE)
@@ -656,6 +662,8 @@ if(BUILD_CLIENT)
             ZLIB::ZLIB
             SDL2::SDL2
             ${OPENGL_LIBRARIES}
+            JPEG::JPEG
+            PNG::PNG
         )
         if(USE_FREETYPE)
             target_compile_definitions(renderer_opengl2 PRIVATE BUILD_FREETYPE)

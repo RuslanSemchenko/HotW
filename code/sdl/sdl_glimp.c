@@ -62,10 +62,7 @@ extern glconfig_t glConfig;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_mode;
 extern cvar_t *r_noborder;
-extern cvar_t *r_allowSoftwareGL; // Don't abort out if a hardware visual can't be obtained
-extern cvar_t *r_allowResize; // make window resizable
-extern cvar_t *r_centerWindow;
-extern cvar_t *r_sdlDriver;
+// Removed extern cvars, will use ri.Cvar_Get instead
 extern cvar_t *r_colorbits;
 extern cvar_t *r_depthbits;
 extern cvar_t *r_stencilbits;
@@ -292,7 +289,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 
 	ri.Printf( PRINT_ALL, "Initializing OpenGL display\n");
 
-	if ( r_allowResize->integer )
+	if ( ri.Cvar_Get("r_allowResize", "0", CVAR_ARCHIVE | CVAR_LATCH)->integer )
 		flags |= SDL_WINDOW_RESIZABLE;
 
 	if( fullscreen )
@@ -439,7 +436,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 
 #if 0 // See http://bugzilla.icculus.org/show_bug.cgi?id=3526
 		// If not allowing software GL, demand accelerated
-		if( !r_allowSoftwareGL->integer )
+		if( !ri.Cvar_Get("r_allowSoftwareGL", "0", CVAR_LATCH)->integer )
 		{
 			if( SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 ) < 0 )
 			{
@@ -451,8 +448,8 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 
 		// Create the window
 		sdl_window = SDL_CreateWindow(CLIENT_WINDOW_TITLE,
-									  r_centerWindow->integer ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED,
-									  r_centerWindow->integer ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED,
+									  ri.Cvar_Get("r_centerWindow", "0", CVAR_ARCHIVE | CVAR_LATCH)->integer ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED,
+									  ri.Cvar_Get("r_centerWindow", "0", CVAR_ARCHIVE | CVAR_LATCH)->integer ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED,
 									  glConfig.vidWidth,
 									  glConfig.vidHeight,
 									  flags);
@@ -849,10 +846,7 @@ of OpenGL
 */
 void GLimp_Init( void )
 {
-	r_allowSoftwareGL = ri.Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
-	r_sdlDriver = ri.Cvar_Get( "r_sdlDriver", "", CVAR_ROM );
-	r_allowResize = ri.Cvar_Get( "r_allowResize", "0", CVAR_ARCHIVE | CVAR_LATCH );
-	r_centerWindow = ri.Cvar_Get( "r_centerWindow", "0", CVAR_ARCHIVE | CVAR_LATCH );
+	// Removed cvar assignments, will use ri.Cvar_Get directly
 #ifdef FRAMEBUFFER_AND_GLSL_SUPPORT
 	r_ext_framebuffer = ri.Cvar_Get( "r_ext_framebuffer", "0", CVAR_ARCHIVE | CVAR_LATCH);
 #endif
