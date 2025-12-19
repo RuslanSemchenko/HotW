@@ -347,6 +347,17 @@ qboolean R_GetModeInfo( int *width, int *height, float *windowAspect, int mode )
 		pixelAspect = vm->pixelAspect;
 	}
 
+	// Safety: avoid division by zero and obviously invalid values from cvars
+	if (*width <= 0) {
+		*width = 640;
+	}
+	if (*height <= 0) {
+		*height = 480;
+	}
+	if (pixelAspect <= 0.0f) {
+		pixelAspect = 1.0f;
+	}
+
 	*windowAspect = (float)*width / ( *height * pixelAspect );
 
 	return qtrue;

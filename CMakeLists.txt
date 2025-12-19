@@ -595,7 +595,10 @@ if(BUILD_CLIENT)
         code/sdl/sdl_glimp.c
         code/renderergl1/tr_subs.c
     )
-    set_target_properties(renderer_opengl1 PROPERTIES PREFIX "")
+    set_target_properties(renderer_opengl1 PROPERTIES
+        PREFIX ""
+        OUTPUT_NAME "renderer_opengl1_x86_64"
+    )
     target_compile_definitions(renderer_opengl1 PRIVATE USE_RENDERER_DLOPEN)
     target_include_directories(renderer_opengl1 PRIVATE ${ZLIB_INCLUDE_DIRS})
     if(USE_FREETYPE)
@@ -650,7 +653,10 @@ if(BUILD_CLIENT)
             code/sdl/sdl_gamma.c
             code/sdl/sdl_glimp.c
         )
-        set_target_properties(renderer_opengl2 PROPERTIES PREFIX "")
+        set_target_properties(renderer_opengl2 PROPERTIES
+            PREFIX ""
+            OUTPUT_NAME "renderer_opengl2_x86_64"
+        )
         target_compile_definitions(renderer_opengl2 PRIVATE USE_RENDERER_DLOPEN)
         target_include_directories(renderer_opengl2 PRIVATE ${ZLIB_INCLUDE_DIRS})
         if(USE_FREETYPE)
@@ -668,4 +674,24 @@ if(BUILD_CLIENT)
             target_link_libraries(renderer_opengl2 PRIVATE Freetype::Freetype)
         endif()
     endif()
+endif()
+
+# ============================================================
+# AddressSanitizer (MSVC)
+# ============================================================
+if(MSVC)
+    foreach(tgt ${CLIENTBIN} ${SERVERBIN} qagame cgame ui renderer_opengl1 renderer_opengl2)
+        if(TARGET ${tgt})
+            # ASan требует /fsanitize=address
+            # Также важно добавить /Zi для нормальных стектрейсов
+            target_compile_options(${tgt} PRIVATE $<$<CONFIG:Debug>:/fsanitize=address /Zi>)
+            
+            # ВАЖНО: ASan НЕ работает с инкрементной линковкой (/INCREMENTAL)
+            # Мы принудительно отключаем её для Debug конфигурации
+            target_link_options(${tgt} PRIVATE $<$<CONFIG:Debug>:/fsanitize=address /INCREMENTAL:NO /DEBUG>)
+            
+            # Для DLL модулей (game/cgame/ui) также важен флаг /DEBUG
+            set_target_properties(${tgt} PROPERTIES MSVC_DEBUG_INFORMATION_FORMAT $<$<CONFIG:Debug>:ProgramDatabase>)
+        endif()
+    endforeach()
 endif()
