@@ -656,7 +656,7 @@ if(BUILD_CLIENT)
             ZLIB::ZLIB
             SDL2::SDL2
             ${OPENGL_LIBRARIES}
-        )Freetype::Freetype
+        )
         if(USE_FREETYPE)
             target_compile_definitions(renderer_opengl2 PRIVATE BUILD_FREETYPE)
             target_link_libraries(renderer_opengl2 PRIVATE Freetype::Freetype)
