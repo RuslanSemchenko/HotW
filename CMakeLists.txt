@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(HeartOfTheWest VERSION 1.0 LANGUAGES C CXX)
+project(HeartOfTheWest VERSION 1.0 LANGUAGES C CXX ASM_MASM)
 
 # ============================================================
 # vcpkg toolchain
@@ -274,6 +274,7 @@ if(BUILD_CLIENT)
             target_sources(${CLIENTBIN} PRIVATE
                 code/asm/snapvector.c
                 code/asm/ftola.c
+                code/asm/vm_x86_64.asm
             )
         else()
             # For GCC/Clang, use .c files with inline assembly
