@@ -780,18 +780,31 @@ nextInstruction2:
 			opStack[opStackOfs] = r1 - r0;
 			goto nextInstruction;
 		case OP_DIVI:
+			// Integer division by zero would normally crash the process.
+			if (r0 == 0) {
+				Com_Error(ERR_DROP, "VM_OP_DIVI: integer division by zero");
+			}
 			opStackOfs--;
 			opStack[opStackOfs] = r1 / r0;
 			goto nextInstruction;
 		case OP_DIVU:
+			if (r0 == 0) {
+				Com_Error(ERR_DROP, "VM_OP_DIVU: unsigned division by zero");
+			}
 			opStackOfs--;
 			opStack[opStackOfs] = ((unsigned) r1) / ((unsigned) r0);
 			goto nextInstruction;
 		case OP_MODI:
+			if (r0 == 0) {
+				Com_Error(ERR_DROP, "VM_OP_MODI: integer modulo by zero");
+			}
 			opStackOfs--;
 			opStack[opStackOfs] = r1 % r0;
 			goto nextInstruction;
 		case OP_MODU:
+			if (r0 == 0) {
+				Com_Error(ERR_DROP, "VM_OP_MODU: unsigned modulo by zero");
+			}
 			opStackOfs--;
 			opStack[opStackOfs] = ((unsigned) r1) % ((unsigned) r0);
 			goto nextInstruction;
