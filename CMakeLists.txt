@@ -148,8 +148,7 @@ set(COMMON_SOURCES
 # ============================================================
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(PkgConfig REQUIRED) 
+find_package(OpenGL REQUIRED) 
 
 if(USE_CURL)
     find_package(CURL REQUIRED)
@@ -158,8 +157,8 @@ if(USE_OPENAL)
     find_package(OpenAL CONFIG REQUIRED)
 endif()
 if(USE_CODEC_VORBIS)
-    pkg_check_modules(VORBIS_PKG REQUIRED vorbis vorbisfile)
-    set(VORBIS_LIBRARIES ${VORBIS_PKG_LIBRARIES})
+    find_package(Vorbis REQUIRED)
+    set(VORBIS_LIBRARIES Vorbis::vorbisfile)
 endif()
 if(USE_FREETYPE)
     find_package(Freetype REQUIRED)
@@ -173,15 +172,10 @@ find_package(PNG REQUIRED)
 # КОДЕКИ (OGG, VORBIS, OPUS)
 # =================================================================
 
-if(USE_CODEC_OPUS OR USE_CODEC_VORBIS)
-    pkg_check_modules(OGG_PKG REQUIRED ogg)
-    set(OGG_LIBRARIES ${OGG_PKG_LIBRARIES})
-endif()
-
 # Opus codec support (for audio files)
 if(USE_CODEC_OPUS)
-    pkg_check_modules(OPUS_PKG REQUIRED opus opusfile)
-    set(OPUS_LIBRARIES ${OPUS_PKG_LIBRARIES} ${OGG_LIBRARIES})
+    find_package(Opus REQUIRED)
+    set(OPUS_LIBRARIES OpusFile::opusfile)
 endif()
 
 # =================================================================
