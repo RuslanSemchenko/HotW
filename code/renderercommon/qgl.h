@@ -32,7 +32,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #else
 #	include <SDL_opengl.h>
 #endif
-
+#include <crtdefs.h>
+#include <windows.h>
 extern void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
@@ -778,7 +779,7 @@ extern void (APIENTRY * qglDrawBuffersARB)(GLsizei n, const GLenum *bufs);
 #define ERROR_INVALID_PROFILE_ARB                 0x2096
 #endif
 
-extern          HGLRC(* qwglCreateContextAttribsARB) (HDC hdC, HGLRC hShareContext, const int *attribList);
+extern HGLRC(* qwglCreateContextAttribsARB) (HDC hdC, HGLRC hShareContext, const int *attribList);
 #endif
 
 #if 0 //defined(__linux__)
