@@ -396,6 +396,7 @@ if(BUILD_SERVER)
             target_sources(${SERVERBIN} PRIVATE
                 code/asm/snapvector.c
                 code/asm/ftola.c
+                code/asm/vm_x86_64.asm
             )
         else()
             # For GCC/Clang, use .c files with inline assembly
@@ -617,6 +618,7 @@ if(BUILD_CLIENT)
         add_library(renderer_opengl2 SHARED
             ${RENDERER_COMMON_SOURCES}
             code/renderergl2/tr_animation.c
+            code/renderergl2/tr_subs.c
             code/renderergl2/tr_backend.c
             code/renderergl2/tr_bsp.c
             code/renderergl2/tr_cmds.c
@@ -640,6 +642,7 @@ if(BUILD_CLIENT)
             code/renderergl2/tr_shade_calc.c
             code/renderergl2/tr_shader.c
             code/renderergl2/tr_shadows.c
+            code/renderergl2/tr_fallback_shaders.c
             code/renderergl2/tr_sky.c
             code/renderergl2/tr_surface.c
             code/renderergl2/tr_vbo.c
