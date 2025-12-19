@@ -606,42 +606,67 @@ static int CM_EdgePlaneNum( cGrid_t *grid, int gridPlanes[MAX_GRID_SIZE][MAX_GRI
 		p1 = grid->points[i][j];
 		p2 = grid->points[i+1][j];
 		p = CM_GridPlane( gridPlanes, i, j, 0 );
-		VectorMA( p1, 4, planes[ p ].plane, up );
+		if ( p < 0 || p >= numPlanes ) {
+			// Fallback: use a default up vector if plane is invalid
+			VectorSet( up, 0, 0, 1 );
+		} else {
+			VectorMA( p1, 4, planes[ p ].plane, up );
+		}
 		return CM_FindPlane( p1, p2, up );
 
 	case 2:	// bottom border
 		p1 = grid->points[i][j+1];
 		p2 = grid->points[i+1][j+1];
 		p = CM_GridPlane( gridPlanes, i, j, 1 );
-		VectorMA( p1, 4, planes[ p ].plane, up );
+		if ( p < 0 || p >= numPlanes ) {
+			VectorSet( up, 0, 0, 1 );
+		} else {
+			VectorMA( p1, 4, planes[ p ].plane, up );
+		}
 		return CM_FindPlane( p2, p1, up );
 
 	case 3: // left border
 		p1 = grid->points[i][j];
 		p2 = grid->points[i][j+1];
 		p = CM_GridPlane( gridPlanes, i, j, 1 );
-		VectorMA( p1, 4, planes[ p ].plane, up );
+		if ( p < 0 || p >= numPlanes ) {
+			VectorSet( up, 0, 0, 1 );
+		} else {
+			VectorMA( p1, 4, planes[ p ].plane, up );
+		}
 		return CM_FindPlane( p2, p1, up );
 
 	case 1:	// right border
 		p1 = grid->points[i+1][j];
 		p2 = grid->points[i+1][j+1];
 		p = CM_GridPlane( gridPlanes, i, j, 0 );
-		VectorMA( p1, 4, planes[ p ].plane, up );
+		if ( p < 0 || p >= numPlanes ) {
+			VectorSet( up, 0, 0, 1 );
+		} else {
+			VectorMA( p1, 4, planes[ p ].plane, up );
+		}
 		return CM_FindPlane( p1, p2, up );
 
 	case 4:	// diagonal out of triangle 0
 		p1 = grid->points[i+1][j+1];
 		p2 = grid->points[i][j];
 		p = CM_GridPlane( gridPlanes, i, j, 0 );
-		VectorMA( p1, 4, planes[ p ].plane, up );
+		if ( p < 0 || p >= numPlanes ) {
+			VectorSet( up, 0, 0, 1 );
+		} else {
+			VectorMA( p1, 4, planes[ p ].plane, up );
+		}
 		return CM_FindPlane( p1, p2, up );
 
 	case 5:	// diagonal out of triangle 1
 		p1 = grid->points[i][j];
 		p2 = grid->points[i+1][j+1];
 		p = CM_GridPlane( gridPlanes, i, j, 1 );
-		VectorMA( p1, 4, planes[ p ].plane, up );
+		if ( p < 0 || p >= numPlanes ) {
+			VectorSet( up, 0, 0, 1 );
+		} else {
+			VectorMA( p1, 4, planes[ p ].plane, up );
+		}
 		return CM_FindPlane( p1, p2, up );
 
 	}
