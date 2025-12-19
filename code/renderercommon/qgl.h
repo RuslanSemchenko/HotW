@@ -1,39 +1,18 @@
-/*
-===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2005-2010 Smokin' Guns
-
-This file is part of Smokin' Guns.
-
-Smokin' Guns is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
-
-Smokin' Guns is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Smokin' Guns; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-===========================================================================
-*/
-/*
-** QGL.H
-*/
-
 #ifndef __QGL_H__
 #define __QGL_H__
 
+// Сначала подключаем стандартные заголовки
 #ifdef USE_LOCAL_HEADERS
-#	include "SDL_opengl.h"
+#   include "SDL_opengl.h"
 #else
-#	include <SDL_opengl.h>
+#   include <SDL_opengl.h>
 #endif
-#include <crtdefs.h>
-#include <windows.h>
+
+// Если мы в Windows, нам нужны специфичные типы для WGL
+#ifdef _WIN32
+#   include <windows.h>
+#   include <corecrt.h> // Современная замена crtdefs.h
+#endif
 extern void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
