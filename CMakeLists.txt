@@ -174,7 +174,7 @@ find_package(PNG REQUIRED)
 
 # Opus codec support (for audio files)
 if(USE_CODEC_OPUS)
-    find_package(Opus REQUIRED)
+    find_package(OpusFile REQUIRED)
     set(OPUS_LIBRARIES OpusFile::opusfile)
 endif()
 
