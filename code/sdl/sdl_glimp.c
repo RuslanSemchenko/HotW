@@ -13,10 +13,6 @@
 #ifndef GLAPIENTRY
 #define GLAPIENTRY APIENTRY
 #endif
-// Correctly define APIENTRYP for all platforms
-#ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
-#endif
 
 #	include <SDL2/SDL.h>
 #   include <SDL2/SDL_video.h>
