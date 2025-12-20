@@ -168,17 +168,20 @@ to the apropriate place.
 A raw string should NEVER be passed as fmt, because of "%f" type crashers.
 =============
 */
+/*
+=============
+Com_Printf
+
+Both client and server can use this, and it will output
+to the apropriate place.
+
+A raw string should NEVER be passed as fmt, because of "%f" type crashers.
+=============
+*/
 void QDECL Com_Printf(const char* fmt, ...) {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
 	static qboolean opening_qconsole = qfalse;
-
-	// For cleaning color codes
-	char		clean_msg[MAXPRINTMSG];
-	char* msg_ptr = msg;
-	int			i, j;
-	qboolean	is_console_print = qfalse;
-
 
 	va_start(argptr, fmt);
 	Q_vsnprintf(msg, sizeof(msg), fmt, argptr);
@@ -190,41 +193,33 @@ void QDECL Com_Printf(const char* fmt, ...) {
 			*rd_buffer = 0;
 		}
 		Q_strcat(rd_buffer, rd_buffersize, msg);
-		// TTimo nooo .. that would defeat the purpose
-		//rd_flush(rd_buffer);
-		//*rd_buffer = 0;
 		return;
 	}
 
 #ifndef DEDICATED
-	// send it to the client side
+	// send to the client console, which will colorize the text
 	CL_ConsolePrint(msg);
-	is_console_print = qtrue;
 #endif
 
-	// Create a clean string for the system console
-	j = 0;
-	for (i = 0; msg[i] && j < sizeof(clean_msg) - 1; i++) {
-		if (Q_IsColorString(&msg[i])) {
-			i++; // Skip color code
+	// echo to the system console (and dedicated server console)
+	{
+		char clean_msg[MAXPRINTMSG];
+		int i, j;
+
+		// create a clean string for the system console
+		j = 0;
+		for (i = 0; msg[i] && j < sizeof(clean_msg) - 1; i++) {
+			if (Q_IsColorString(&msg[i])) {
+				i++; // skip the color code
+			}
+			else {
+				clean_msg[j++] = msg[i];
+			}
 		}
-		else {
-			clean_msg[j++] = msg[i];
-		}
+		clean_msg[j] = '\0';
+		Sys_Print(clean_msg);
 	}
-	clean_msg[j] = '\0';
 
-	// Use the clean string for system console output
-	msg_ptr = clean_msg;
-
-	// echo to dedicated console and early console
-	Sys_Print(msg);
-
-	// For log file, use original message with color codes
-	if (is_console_print) {
-		// CL_ConsolePrint might have modified the string, but we want the original for the log
-		msg_ptr = msg;
-	}
 
 	// logfile
 	if (com_logfile && com_logfile->integer) {
@@ -261,7 +256,8 @@ void QDECL Com_Printf(const char* fmt, ...) {
 			opening_qconsole = qfalse;
 		}
 		if (logfile && FS_Initialized()) {
-			FS_Write(msg_ptr, strlen(msg_ptr), logfile);
+			// write the original string with color codes to the log
+			FS_Write(msg, strlen(msg), logfile);
 		}
 	}
 }
