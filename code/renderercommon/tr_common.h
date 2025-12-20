@@ -159,47 +159,47 @@ void		GLimp_SetGamma(unsigned char red[256],
 //
 // glimp_ext.c
 //
-extern	void (APIENTRYP qglMultiTexCoord2fARB)(GLenum target, GLfloat s, GLfloat t);
-extern	void (APIENTRYP qglActiveTextureARB)(GLenum texture);
-extern	void (APIENTRYP qglClientActiveTextureARB)(GLenum texture);
+extern	void (APIENTRY* qglMultiTexCoord2fARB)(GLenum target, GLfloat s, GLfloat t);
+extern	void (APIENTRY* qglActiveTextureARB)(GLenum texture);
+extern	void (APIENTRY* qglClientActiveTextureARB)(GLenum texture);
 
-extern	void (APIENTRYP qglLockArraysEXT)(int, int);
-extern	void (APIENTRYP qglUnlockArraysEXT)(void);
+extern	void (APIENTRY* qglLockArraysEXT)(int, int);
+extern	void (APIENTRY* qglUnlockArraysEXT)(void);
 
 #ifdef FRAMEBUFFER_AND_GLSL_SUPPORT
 //added framebuffer extensions
-extern void (APIENTRYP qglGenFramebuffersEXT)(GLsizei, GLuint*);
-extern void (APIENTRYP qglBindFramebufferEXT)(GLenum, GLuint);
-extern void (APIENTRYP qglGenRenderbuffersEXT)(GLsizei, GLuint*);
-extern void (APIENTRYP qglBindRenderbufferEXT)(GLenum, GLuint);
-extern void (APIENTRYP qglRenderbufferStorageEXT)(GLenum, GLenum, GLsizei, GLsizei);
-extern void (APIENTRYP qglRenderbufferStorageMultisampleEXT)(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
-extern void (APIENTRYP qglFramebufferRenderbufferEXT)(GLenum, GLenum, GLenum, GLuint);
-extern void (APIENTRYP qglFramebufferTexture2DEXT)(GLenum, GLenum, GLenum, GLuint, GLint);
-extern GLenum(APIENTRYP qglCheckFramebufferStatusEXT)(GLenum);
-extern void (APIENTRYP qglDeleteFramebuffersEXT)(GLsizei, const GLuint*);
-extern void (APIENTRYP qglDeleteRenderbuffersEXT)(GLsizei, const GLuint*);
-extern void (APIENTRYP qglBlitFramebufferEXT)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLenum, GLbitfield);
+extern void (APIENTRY* qglGenFramebuffersEXT)(GLsizei, GLuint*);
+extern void (APIENTRY* qglBindFramebufferEXT)(GLenum, GLuint);
+extern void (APIENTRY* qglGenRenderbuffersEXT)(GLsizei, GLuint*);
+extern void (APIENTRY* qglBindRenderbufferEXT)(GLenum, GLuint);
+extern void (APIENTRY* qglRenderbufferStorageEXT)(GLenum, GLenum, GLsizei, GLsizei);
+extern void (APIENTRY* qglRenderbufferStorageMultisampleEXT)(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
+extern void (APIENTRY* qglFramebufferRenderbufferEXT)(GLenum, GLenum, GLenum, GLuint);
+extern void (APIENTRY* qglFramebufferTexture2DEXT)(GLenum, GLenum, GLenum, GLuint, GLint);
+extern GLenum(APIENTRY* qglCheckFramebufferStatusEXT)(GLenum);
+extern void (APIENTRY* qglDeleteFramebuffersEXT)(GLsizei, const GLuint*);
+extern void (APIENTRY* qglDeleteRenderbuffersEXT)(GLsizei, const GLuint*);
+extern void (APIENTRY* qglBlitFramebufferEXT)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLenum, GLbitfield);
 
 //added fragment/vertex program extensions
-extern void (APIENTRYP qglAttachShader) (GLuint, GLuint);
-extern void (APIENTRYP qglBindAttribLocation) (GLuint, GLuint, const GLchar*);
-extern void (APIENTRYP qglCompileShader) (GLuint);
-extern GLuint(APIENTRYP qglCreateProgram) (void);
-extern GLuint(APIENTRYP qglCreateShader) (GLenum);
-extern void (APIENTRYP qglDeleteProgram) (GLuint);
-extern void (APIENTRYP qglDeleteShader) (GLuint);
-extern void (APIENTRYP qglShaderSource) (GLuint, GLsizei, const GLchar**, const GLint*);
-extern void (APIENTRYP qglLinkProgram) (GLuint);
-extern void (APIENTRYP qglUseProgram) (GLuint);
-extern GLint(APIENTRYP qglGetUniformLocation) (GLuint, const GLchar*);
-extern void (APIENTRYP qglUniform1f) (GLint, GLfloat);
-extern void (APIENTRYP qglUniform2f) (GLint, GLfloat, GLfloat);
-extern void (APIENTRYP qglUniform1i) (GLint, GLint);
-extern void (APIENTRYP qglGetProgramiv) (GLuint, GLenum, GLint*);
-extern void (APIENTRYP qglGetProgramInfoLog) (GLuint, GLsizei, GLsizei*, GLchar*);
-extern void (APIENTRYP qglGetShaderiv) (GLuint, GLenum, GLint*);
-extern void (APIENTRYP qglGetShaderInfoLog) (GLuint, GLsizei, GLsizei*, GLchar*);
+extern void (APIENTRY* qglAttachShader) (GLuint, GLuint);
+extern void (APIENTRY* qglBindAttribLocation) (GLuint, GLuint, const GLchar*);
+extern void (APIENTRY* qglCompileShader) (GLuint);
+extern GLuint(APIENTRY* qglCreateProgram) (void);
+extern GLuint(APIENTRY* qglCreateShader) (GLenum);
+extern void (APIENTRY* qglDeleteProgram) (GLuint);
+extern void (APIENTRY* qglDeleteShader) (GLuint);
+extern void (APIENTRY* qglShaderSource) (GLuint, GLsizei, const GLchar**, const GLint*);
+extern void (APIENTRY* qglLinkProgram) (GLuint);
+extern void (APIENTRY* qglUseProgram) (GLuint);
+extern GLint(APIENTRY* qglGetUniformLocation) (GLuint, const GLchar*);
+extern void (APIENTRY* qglUniform1f) (GLint, GLfloat);
+extern void (APIENTRY* qglUniform2f) (GLint, GLfloat, GLfloat);
+extern void (APIENTRY* qglUniform1i) (GLint, GLint);
+extern void (APIENTRY* qglGetProgramiv) (GLuint, GLenum, GLint*);
+extern void (APIENTRY* qglGetProgramInfoLog) (GLuint, GLsizei, GLsizei*, GLchar*);
+extern void (APIENTRY* qglGetShaderiv) (GLuint, GLenum, GLint*);
+extern void (APIENTRY* qglGetShaderInfoLog) (GLuint, GLsizei, GLsizei*, GLchar*);
 #endif
 
 #endif
