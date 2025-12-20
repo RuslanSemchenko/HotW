@@ -27,3 +27,4 @@ vcpkg_installed/
 
 # Прочее
 .DS_Store
+/CMakeSettings.json
