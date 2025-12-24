@@ -1,5 +1,3 @@
-
-
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 #include "sys_local.h"
@@ -40,7 +38,7 @@ CON_LogWrite
 */
 unsigned int CON_LogWrite( const char *in )
 {
-	unsigned int length = strlen( in );
+	unsigned int length = (unsigned int)strlen( in );
 	unsigned int firstChunk;
 	unsigned int secondChunk;
 
@@ -67,7 +65,6 @@ unsigned int CON_LogWrite( const char *in )
 		firstChunk  = length;
 		secondChunk = 0;
 	}
-
 	Com_Memcpy( consoleLog + writePos, in, firstChunk );
 	Com_Memcpy( consoleLog, in + firstChunk, secondChunk );
 

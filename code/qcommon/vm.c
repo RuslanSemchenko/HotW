@@ -1,4 +1,3 @@
-
 // vm.c -- virtual machine
 
 /*
@@ -254,7 +253,7 @@ void VM_LoadSymbols(vm_t* vm) {
 			break;
 		}
 		chars = strlen(token);
-		sym = Hunk_Alloc(sizeof(*sym) + chars, h_high);
+		sym = Hunk_Alloc((int)(sizeof(*sym) + chars), h_high); // Cast to int for Hunk_Alloc
 		*prev = sym;
 		prev = &sym->next;
 		sym->next = NULL;
@@ -331,7 +330,7 @@ intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
 #endif
 }
 
-
+	
 /*
 =================
 VM_LoadQVM
@@ -347,7 +346,7 @@ vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure)
 	union {
 		vmHeader_t	*h;
 		void				*v;
-	} header;
+	} header = { .v = NULL }; // Initialize to NULL to prevent C4701/C4703
 
 	// load the image
 	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", vm->name );
@@ -541,12 +540,12 @@ vm_t *VM_Restart(vm_t *vm, qboolean unpure)
 }
 
 /*
-================
+=================
 VM_Create
 
 If image ends in .qvm it will be interpreted, otherwise
 it will attempt to load as a system dll
-================
+=================
 */
 vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *), 
 				vmInterpret_t interpret ) {
@@ -952,10 +951,10 @@ Insert calls to this while debugging the vm compiler
 */
 void VM_LogSyscalls( int *args ) {
 	static int callnum;
-	FILE *f;
+	FILE *f = NULL; // Explicitly initialize f
+	errno_t err = fopen_s(&f, "syscalls.log", "a" ); // Use fopen_s
 
-	f = fopen("syscalls.log", "a" );
-	if ( !f ) {
+	if ( err != 0 || !f ) { // Check return value of fopen_s
 		// We can't log an error here without potentially causing an infinite loop
 		// if Com_Printf calls a VM function. Just return.
 		return;

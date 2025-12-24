@@ -187,11 +187,6 @@ if(USE_CODEC_OPUS)
     set(OPUS_LIBRARIES OpusFile::opusfile)
 endif()
 
-# =================================================================
-# Speex support (для VOIP) - БЛОК ПОЛНОСТЬЮ УДАЛЕН
-# =================================================================
-
-
 # ============================================================
 # CLIENT
 # ============================================================
@@ -299,17 +294,12 @@ if(BUILD_CLIENT)
     if(USE_MUMBLE)
         list(APPEND CLIENT_COMPILE_DEFS USE_MUMBLE)
     endif()
-    # USE_VOIP отключен, поэтому не добавляется в определения
-
+    
     target_compile_definitions(${CLIENTBIN} PRIVATE ${CLIENT_COMPILE_DEFS})
     target_include_directories(${CLIENTBIN} PRIVATE ${ZLIB_INCLUDE_DIRS} ${VORBIS_PKG_INCLUDE_DIRS} ${OPUS_PKG_INCLUDE_DIRS})
     if(USE_FREETYPE)
         target_include_directories(${CLIENTBIN} PRIVATE ${FREETYPE_INCLUDE_DIRS})
     endif()
-
-    # ============================================================
-    # БЛОК ЛИНКОВКИ SPEEX/VOIP ПОЛНОСТЬЮ УДАЛЕН
-    # ============================================================
 
     target_link_libraries(${CLIENTBIN} PRIVATE
         # Общие библиотеки
@@ -321,15 +311,15 @@ if(BUILD_CLIENT)
     if(NOT WIN32)
         target_link_libraries(${CLIENTBIN} PRIVATE m)
     endif()
+    
     if(WIN32)
         target_link_libraries(${CLIENTBIN} PRIVATE
-            ws2_32
+            ws2_32   # Обязательно для сетевого кода (net_ip.c)
             winmm
             gdi32
             ole32
         )
     endif()
-    # ============================================================
     
     if(USE_OPENAL)
         target_compile_definitions(${CLIENTBIN} PRIVATE USE_OPENAL)
@@ -426,7 +416,6 @@ if(BUILD_SERVER)
     if(USE_MUMBLE)
         list(APPEND SERVER_COMPILE_DEFS USE_MUMBLE)
     endif()
-    # USE_VOIP отключен, поэтому не добавляется в определения
     
     target_compile_definitions(${SERVERBIN} PRIVATE ${SERVER_COMPILE_DEFS})
     target_include_directories(${SERVERBIN} PRIVATE ${ZLIB_INCLUDE_DIRS} ${VORBIS_PKG_INCLUDE_DIRS} ${OPUS_PKG_INCLUDE_DIRS})
@@ -437,9 +426,10 @@ if(BUILD_SERVER)
     if(NOT WIN32)
         target_link_libraries(${SERVERBIN} PRIVATE m)
     endif()
+    
     if(WIN32)
         target_link_libraries(${SERVERBIN} PRIVATE
-            ws2_32
+            ws2_32   # Обязательно для сетевого кода (net_ip.c)
             winmm
             psapi
         )
@@ -453,8 +443,6 @@ if(BUILD_SERVER)
         # OPUS_LIBRARIES теперь содержит Opus::opus, OpusFile::opusfile и Ogg::ogg
         target_link_libraries(${SERVERBIN} PRIVATE ${OPUS_LIBRARIES})
     endif()
-
-    # БЛОК ЛИНКОВКИ SPEEX/VOIP ПОЛНОСТЬЮ УДАЛЕН
 
     if(USE_OPENAL)
         target_link_libraries(${SERVERBIN} PRIVATE OpenAL::OpenAL)
@@ -695,8 +683,6 @@ endif()
 # ============================================================
 if(MSVC)
     # Используем compile_features для корректного включения ASan только для C/CXX
-    # Это автоматически добавит /fsanitize=address для компилятора и линкера
-    # и не будет передавать этот флаг ассемблеру.
     set(CMAKE_COMPILE_FEATURES c_std_23)
 
     # Отключаем инкрементную линковку для Debug-сборок, так как она несовместима с ASan
@@ -708,12 +694,8 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
     
     # Включаем строгие предупреждения и обрабатываем C4996 (устаревшие функции) как ошибку.
-    # Это заставит сборку остановиться, если используется небезопасная функция.
     foreach(tgt ${CLIENTBIN} ${SERVERBIN} qagame cgame ui renderer_opengl1 renderer_opengl2)
         if(TARGET ${tgt})
-            # /W4 - максимальный уровень предупреждений
-            # /WX - все предупреждения считать ошибками
-            # /wd4996 - отключаем ошибку для C4996, чтобы сборка не падала сразу, а показывала их как предупреждения
             target_compile_options(${tgt} PRIVATE /W4)
         endif()
     endforeach()
