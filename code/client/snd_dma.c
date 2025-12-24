@@ -156,27 +156,31 @@ void S_Base_MasterGain( float val )
 S_Base_SoundList
 =================
 */
-void S_Base_SoundList( void ) {
-	int		i;
-	sfx_t	*sfx;
-	int		size, total;
-	char	type[4][16];
-	char	mem[2][16];
+void S_Base_SoundList(void) {
+	int i;
+	sfx_t* sfx;
+	int size, total;
+	char type[4][16];
+	char mem[2][16];
 
-	strncpy(type[0], "16bit", sizeof(type[0]) - 1); type[0][sizeof(type[0]) - 1] = '\0';
-	strncpy(type[1], "adpcm", sizeof(type[1]) - 1); type[1][sizeof(type[1]) - 1] = '\0';
-	strncpy(type[2], "daub4", sizeof(type[2]) - 1); type[2][sizeof(type[2]) - 1] = '\0';
-	strncpy(type[3], "mulaw", sizeof(type[3]) - 1); type[3][sizeof(type[3]) - 1] = '\0';
-	strncpy(mem[0], "paged out", sizeof(mem[0]) - 1); mem[0][sizeof(mem[0]) - 1] = '\0';
-	strncpy(mem[1], "resident ", sizeof(mem[1]) - 1); mem[1][sizeof(mem[1]) - 1] = '\0';
+	Q_strncpyz(type[0], "16bit", sizeof(type[0]));
+	Q_strncpyz(type[1], "adpcm", sizeof(type[1]));
+	Q_strncpyz(type[2], "daub4", sizeof(type[2]));
+	Q_strncpyz(type[3], "mulaw", sizeof(type[3]));
+	Q_strncpyz(mem[0], "paged out", sizeof(mem[0]));
+	Q_strncpyz(mem[1], "resident ", sizeof(mem[1]));
+
 	total = 0;
-	for (sfx=s_knownSfx, i=0 ; i<s_numSfx ; i++, sfx++) {
+	for (sfx = s_knownSfx, i = 0; i < s_numSfx; i++, sfx++) {
 		size = sfx->soundLength;
 		total += size;
-		Com_Printf("%6i[%s] : %s[%s]\n", size, type[sfx->soundCompressionMethod],
-				sfx->soundName, mem[sfx->inMemory] );
+		Com_Printf("%6i[%s] : %s[%s]\n",
+			size,
+			type[sfx->soundCompressionMethod],
+			sfx->soundName,
+			mem[sfx->inMemory]);
 	}
-	Com_Printf ("Total resident: %i\n", total);
+	Com_Printf("Total resident: %i\n", total);
 	S_DisplayFreeMemory();
 }
 
@@ -252,44 +256,41 @@ S_FindName
 Will allocate a new sfx if it isn't found
 ==================
 */
-static sfx_t *S_FindName( const char *name ) {
-	int		i;
-	int		hash;
-
-	sfx_t	*sfx;
+static sfx_t* S_FindName(const char* name) {
+	int i;
+	int hash;
+	sfx_t* sfx;
 
 	if (!name) {
 		Com_Error(ERR_FATAL, "Sound name is NULL");
 	}
 
 	if (!name[0]) {
-		Com_Printf( S_COLOR_YELLOW "WARNING: Sound name is empty\n" );
+		Com_Printf(S_COLOR_YELLOW "WARNING: Sound name is empty\n");
 		return NULL;
 	}
 
 	if (strlen(name) >= MAX_QPATH) {
-		Com_Printf( S_COLOR_YELLOW "WARNING: Sound name is too long: %s\n", name );
+		Com_Printf(S_COLOR_YELLOW "WARNING: Sound name is too long: %s\n", name);
 		return NULL;
 	}
 
 	if (name[0] == '*') {
-		Com_Printf( S_COLOR_YELLOW "WARNING: Tried to load player sound directly: %s\n", name );
+		Com_Printf(S_COLOR_YELLOW "WARNING: Tried to load player sound directly: %s\n", name);
 		return NULL;
 	}
 
 	hash = S_HashSFXName(name);
 
 	sfx = sfxHash[hash];
-	// see if already loaded
 	while (sfx) {
-		if (!Q_stricmp(sfx->soundName, name) ) {
+		if (!Q_stricmp(sfx->soundName, name)) {
 			return sfx;
 		}
 		sfx = sfx->next;
 	}
 
-	// find a free sfx
-	for (i=0 ; i < s_numSfx ; i++) {
+	for (i = 0; i < s_numSfx; i++) {
 		if (!s_knownSfx[i].soundName[0]) {
 			break;
 		}
@@ -297,14 +298,14 @@ static sfx_t *S_FindName( const char *name ) {
 
 	if (i == s_numSfx) {
 		if (s_numSfx == MAX_SFX) {
-			Com_Error (ERR_FATAL, "S_FindName: out of sfx_t");
+			Com_Error(ERR_FATAL, "S_FindName: out of sfx_t");
 		}
 		s_numSfx++;
 	}
-	
+
 	sfx = &s_knownSfx[i];
-	Com_Memset (sfx, 0, sizeof(*sfx));
-	strncpy (sfx->soundName, name, sizeof(sfx->soundName) - 1); sfx->soundName[sizeof(sfx->soundName) - 1] = '\0';
+	Com_Memset(sfx, 0, sizeof(*sfx));
+	Q_strncpyz(sfx->soundName, name, sizeof(sfx->soundName));
 
 	sfx->next = sfxHash[hash];
 	sfxHash[hash] = sfx;
@@ -953,21 +954,21 @@ If raw data has been loaded in little endien binary form, this must be done.
 If raw data was calculated, as with ADPCM, this should not be called.
 =================
 */
-void S_ByteSwapRawSamples( int samples, int width, int s_channels, const byte *data ) {
-	int		i;
+void S_ByteSwapRawSamples(int samples, int width, int numChannels, byte* data) {
+	int i;
 
-	if ( width != 2 ) {
+	if (width != 2) {
 		return;
 	}
-	if ( LittleShort( 256 ) == 256 ) {
+	if (LittleShort(256) == 256) {
 		return;
 	}
 
-	if ( s_channels == 2 ) {
+	if (numChannels == 2) {
 		samples <<= 1;
 	}
-	for ( i = 0 ; i < samples ; i++ ) {
-		((short *)data)[i] = LittleShort( ((short *)data)[i] );
+	for (i = 0; i < samples; i++) {
+		((short*)data)[i] = LittleShort(((short*)data)[i]);
 	}
 }
 
@@ -978,122 +979,122 @@ S_Base_RawSamples
 Music streaming
 ============
 */
-void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_channels, const byte *data, float volume, int entityNum)
+void S_Base_RawSamples(int stream, int samples, int rate, int width, int numChannels, const byte* data, float volume, int entityNum)
 {
-	int		i;
-	int		src, dst;
-	float	scale;
-	int		intVolumeLeft, intVolumeRight;
-	portable_samplepair_t *rawsamples;
+	int i;
+	int src, dst;
+	float scale;
+	int intVolumeLeft, intVolumeRight;
+	portable_samplepair_t* rawsamples;
 
-	if ( !s_soundStarted || s_soundMuted ) {
+	if (!s_soundStarted || s_soundMuted) {
 		return;
 	}
 
-	if ( (stream < 0) || (stream >= MAX_RAW_STREAMS) ) {
+	if ((stream < 0) || (stream >= MAX_RAW_STREAMS)) {
 		return;
 	}
 
 	rawsamples = s_rawsamples[stream];
 
-	if ( s_muted->integer ) {
+	if (s_muted->integer) {
 		intVolumeLeft = intVolumeRight = 0;
-	} else {
+	}
+	else {
 		int leftvol, rightvol;
 
-		if ( entityNum >= 0 && entityNum < MAX_GENTITIES ) {
-			// support spatialized raw streams, e.g. for VoIP
-			S_SpatializeOrigin( loopSounds[ entityNum ].origin, 256, &leftvol, &rightvol );
-		} else {
+		if (entityNum >= 0 && entityNum < MAX_GENTITIES) {
+			S_SpatializeOrigin(loopSounds[entityNum].origin, 256, &leftvol, &rightvol);
+		}
+		else {
 			leftvol = rightvol = 256;
 		}
 
-		intVolumeLeft = leftvol * volume * s_volume->value;
-		intVolumeRight = rightvol * volume * s_volume->value;
+		intVolumeLeft = (int)(leftvol * volume * s_volume->value);
+		intVolumeRight = (int)(rightvol * volume * s_volume->value);
 	}
 
-	if ( s_rawend[stream] < s_soundtime ) {
-		Com_DPrintf( "S_Base_RawSamples: resetting minimum: %i < %i\n", s_rawend[stream], s_soundtime );
+	if (s_rawend[stream] < s_soundtime) {
+		Com_DPrintf("S_Base_RawSamples: resetting minimum: %i < %i\n", s_rawend[stream], s_soundtime);
 		s_rawend[stream] = s_soundtime;
 	}
 
 	scale = (float)rate / dma.speed;
 
-//Com_Printf ("%i < %i < %i\n", s_soundtime, s_paintedtime, s_rawend[stream]);
-	if (s_channels == 2 && width == 2)
+	if (numChannels == 2 && width == 2)
 	{
-		if (scale == 1.0)
-		{	// optimized case
-			for (i=0 ; i<samples ; i++)
+		if (scale == 1.0f)
+		{
+			for (i = 0; i < samples; i++)
 			{
-				dst = s_rawend[stream]&(MAX_RAW_SAMPLES-1);
+				dst = s_rawend[stream] & (MAX_RAW_SAMPLES - 1);
 				s_rawend[stream]++;
-				rawsamples[dst].left = ((short *)data)[i*2] * intVolumeLeft;
-				rawsamples[dst].right = ((short *)data)[i*2+1] * intVolumeRight;
+				rawsamples[dst].left = ((const short*)data)[i * 2] * intVolumeLeft;
+				rawsamples[dst].right = ((const short*)data)[i * 2 + 1] * intVolumeRight;
 			}
 		}
 		else
 		{
-			for (i=0 ; ; i++)
+			for (i = 0; ; i++)
 			{
-				src = i*scale;
+				src = (int)(i * scale);
 				if (src >= samples)
 					break;
-				dst = s_rawend[stream]&(MAX_RAW_SAMPLES-1);
+				dst = s_rawend[stream] & (MAX_RAW_SAMPLES - 1);
 				s_rawend[stream]++;
-				rawsamples[dst].left = ((short *)data)[src*2] * intVolumeLeft;
-				rawsamples[dst].right = ((short *)data)[src*2+1] * intVolumeRight;
+				rawsamples[dst].left = ((const short*)data)[src * 2] * intVolumeLeft;
+				rawsamples[dst].right = ((const short*)data)[src * 2 + 1] * intVolumeRight;
 			}
 		}
 	}
-	else if (s_channels == 1 && width == 2)
+	else if (numChannels == 1 && width == 2)
 	{
-		for (i=0 ; ; i++)
+		for (i = 0; ; i++)
 		{
-			src = i*scale;
+			src = (int)(i * scale);
 			if (src >= samples)
 				break;
-			dst = s_rawend[stream]&(MAX_RAW_SAMPLES-1);
+			dst = s_rawend[stream] & (MAX_RAW_SAMPLES - 1);
 			s_rawend[stream]++;
-			rawsamples[dst].left = ((short *)data)[src] * intVolumeLeft;
-			rawsamples[dst].right = ((short *)data)[src] * intVolumeRight;
+			rawsamples[dst].left = ((const short*)data)[src] * intVolumeLeft;
+			rawsamples[dst].right = ((const short*)data)[src] * intVolumeRight;
 		}
 	}
-	else if (s_channels == 2 && width == 1)
-	{
-		intVolumeLeft *= 256;
-		intVolumeRight *= 256;
-
-		for (i=0 ; ; i++)
-		{
-			src = i*scale;
-			if (src >= samples)
-				break;
-			dst = s_rawend[stream]&(MAX_RAW_SAMPLES-1);
-			s_rawend[stream]++;
-			rawsamples[dst].left = ((char *)data)[src*2] * intVolumeLeft;
-			rawsamples[dst].right = ((char *)data)[src*2+1] * intVolumeRight;
-		}
-	}
-	else if (s_channels == 1 && width == 1)
+	else if (numChannels == 2 && width == 1)
 	{
 		intVolumeLeft *= 256;
 		intVolumeRight *= 256;
 
-		for (i=0 ; ; i++)
+		for (i = 0; ; i++)
 		{
-			src = i*scale;
+			src = (int)(i * scale);
 			if (src >= samples)
 				break;
-			dst = s_rawend[stream]&(MAX_RAW_SAMPLES-1);
+			dst = s_rawend[stream] & (MAX_RAW_SAMPLES - 1);
 			s_rawend[stream]++;
-			rawsamples[dst].left = (((byte *)data)[src]-128) * intVolumeLeft;
-			rawsamples[dst].right = (((byte *)data)[src]-128) * intVolumeRight;
+			rawsamples[dst].left = ((const char*)data)[src * 2] * intVolumeLeft;
+			rawsamples[dst].right = ((const char*)data)[src * 2 + 1] * intVolumeRight;
+		}
+	}
+	else if (numChannels == 1 && width == 1)
+	{
+		intVolumeLeft *= 256;
+		intVolumeRight *= 256;
+
+		for (i = 0; ; i++)
+		{
+			src = (int)(i * scale);
+			if (src >= samples)
+				break;
+			dst = s_rawend[stream] & (MAX_RAW_SAMPLES - 1);
+			s_rawend[stream]++;
+			rawsamples[dst].left = (((const byte*)data)[src] - 128) * intVolumeLeft;
+			rawsamples[dst].right = (((const byte*)data)[src] - 128) * intVolumeRight;
 		}
 	}
 
-	if ( s_rawend[stream] > s_soundtime + MAX_RAW_SAMPLES ) {
-		Com_DPrintf( "S_Base_RawSamples: overflowed %i > %i\n", s_rawend[stream], s_soundtime );
+	if (s_rawend[stream] > s_soundtime + MAX_RAW_SAMPLES) {
+		Com_DPrintf("S_Base_RawSamples: overflowed %i > %i\n", s_rawend[stream], s_soundtime);
 	}
 }
 

@@ -77,8 +77,8 @@ qboolean COM_CompareExtension(const char *in, const char *ext)
 {
 	int inlen, extlen;
 	
-	inlen = strlen(in);
-	extlen = strlen(ext);
+	inlen = (int)strlen(in);
+	extlen = (int)strlen(ext);
 	
 	if(extlen <= inlen)
 	{
@@ -736,7 +736,7 @@ int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 {
 	int retval;
 	
-	retval = _vsnprintf(str, size, format, ap);
+	retval = _vsnprintf_s(str, size, _TRUNCATE, format, ap);
 
 	if(retval < 0 || retval == size)
 	{
@@ -748,7 +748,7 @@ int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 		// implementation, so we have no choice but to return size.
 		
 		str[size - 1] = '\0';
-		return size;
+		return (int)size;
 	}
 	
 	return retval;
@@ -773,7 +773,7 @@ void Q_strncpyz( char *dest, const char *src, int destsize ) {
 		Com_Error(ERR_FATAL,"Q_strncpyz: destsize < 1" );
 	}
 
-	strncpy( dest, src, destsize-1 );
+	strncpy_s( dest, destsize, src, destsize - 1 );
 	dest[destsize-1] = 0;
 }
 
@@ -866,7 +866,7 @@ char *Q_strupr( char *s1 ) {
 void Q_strcat( char *dest, int size, const char *src ) {
 	int		l1;
 
-	l1 = strlen( dest );
+	l1 = (int)strlen( dest );
 	if ( l1 >= size ) {
 		Com_Error( ERR_FATAL, "Q_strcat: already overflowed" );
 	}
@@ -898,8 +898,8 @@ const char *Q_stristr( const char *s, const char *find)
 				{
 					sc -= ('a' - 'A');
 				}
-			} while (sc != c);
-		} while (Q_stricmpn(s, find, len) != 0);
+			} 		while (sc != c);
+		} while (Q_stricmpn(s, find, (int)len) != 0);
 		s--;
 	}
 	return s;
@@ -1011,7 +1011,7 @@ Assumes buffer is atleast TRUNCATE_LENGTH big
 */
 void Com_TruncateLongString( char *buffer, const char *s )
 {
-	int length = strlen( s );
+	int length = (int)strlen( s );
 
 	if( length <= TRUNCATE_LENGTH )
 		Q_strncpyz( buffer, s, TRUNCATE_LENGTH );

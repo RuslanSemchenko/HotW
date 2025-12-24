@@ -188,7 +188,7 @@ void QDECL Com_Printf(const char* fmt, ...) {
 	va_end(argptr);
 
 	if (rd_buffer) {
-		if ((strlen(msg) + strlen(rd_buffer)) > (rd_buffersize - 1)) {
+		if ((strlen(msg) + strlen(rd_buffer)) > ((unsigned int)rd_buffersize - 1)) {
 			rd_flush(rd_buffer);
 			*rd_buffer = 0;
 		}
@@ -223,19 +223,28 @@ void QDECL Com_Printf(const char* fmt, ...) {
 
 	// logfile
 	if (com_logfile && com_logfile->integer) {
-		// TTimo: only open the qconsole.log if the filesystem is in an initialized state
+		// only open the qconsole.log if the filesystem is in an initialized state
 		//   also, avoid recursing in the qconsole.log opening (i.e. if fs_debug is on)
 		if (!logfile && FS_Initialized() && !opening_qconsole) {
-			struct tm* newtime;
 			time_t aclock;
 
 			opening_qconsole = qtrue;
 
 			time(&aclock);
-			newtime = localtime(&aclock);
 
 			logfile = FS_FOpenFileWrite("qconsole.log");
 
+#ifdef _WIN32
+			if (logfile)
+			{
+				struct tm newtime;
+				char timebuf[26];
+				localtime_s(&newtime, &aclock);
+				asctime_s(timebuf, sizeof(timebuf), &newtime);
+				Com_Printf("logfile opened on %s", timebuf); // asctime_s adds a newline
+			}
+#else
+			// original implementation for other platforms
 			if (logfile)
 			{
 				Com_Printf("logfile opened on %s\n", asctime(newtime));
@@ -247,6 +256,7 @@ void QDECL Com_Printf(const char* fmt, ...) {
 					FS_ForceFlush(logfile);
 				}
 			}
+#endif
 			else
 			{
 				Com_Printf("Opening qconsole.log failed!\n");
@@ -257,12 +267,10 @@ void QDECL Com_Printf(const char* fmt, ...) {
 		}
 		if (logfile && FS_Initialized()) {
 			// write the original string with color codes to the log
-			FS_Write(msg, strlen(msg), logfile);
+			FS_Write(msg, (int)strlen(msg), logfile);
 		}
 	}
 }
-
-
 /*
 ================
 Com_DPrintf
@@ -574,7 +582,7 @@ void Info_Print(const char* s) {
 		while (*s && *s != '\\')
 			*o++ = *s++;
 
-		l = o - key;
+		l = (int)(o - key);
 		if (l < 20)
 		{
 			Com_Memset(o, ' ', 20 - l);
@@ -608,10 +616,11 @@ Com_StringContains
 ============
 */
 char* Com_StringContains(char* str1, char* str2, int casesensitive) {
-	int len, i, j;
+	ptrdiff_t len;
+	int i, j;
 
 	len = strlen(str1) - strlen(str2);
-	for (i = 0; i <= len; i++, str1++) {
+	for (i = 0; i <= (int)len; i++, str1++) {
 		for (j = 0; str2[j]; j++) {
 			if (casesensitive) {
 				if (str1[j] != str2[j]) {
@@ -749,24 +758,27 @@ Com_RealTime
 ================
 */
 int Com_RealTime(qtime_t* qtime) {
-	time_t t;
-	struct tm* tms;
+	time_t t = time(NULL);
 
-	t = time(NULL);
 	if (!qtime)
 		return t;
-	tms = localtime(&t);
-	if (tms) {
-		qtime->tm_sec = tms->tm_sec;
-		qtime->tm_min = tms->tm_min;
-		qtime->tm_hour = tms->tm_hour;
-		qtime->tm_mday = tms->tm_mday;
-		qtime->tm_mon = tms->tm_mon;
-		qtime->tm_year = tms->tm_year;
-		qtime->tm_wday = tms->tm_wday;
-		qtime->tm_yday = tms->tm_yday;
-		qtime->tm_isdst = tms->tm_isdst;
-	}
+
+#ifdef _WIN32
+	struct tm tms;
+	localtime_s(&tms, &t);
+	qtime->tm_sec = tms.tm_sec;
+	qtime->tm_min = tms.tm_min;
+	qtime->tm_hour = tms.tm_hour;
+	qtime->tm_mday = tms.tm_mday;
+	qtime->tm_mon = tms.tm_mon;
+	qtime->tm_year = tms.tm_year;
+	qtime->tm_wday = tms.tm_wday;
+	qtime->tm_yday = tms.tm_yday;
+	qtime->tm_isdst = tms.tm_isdst;
+#else
+	struct tm* tms = localtime(&t);
+	if (tms) *qtime = *(qtime_t*)tms;
+#endif
 	return t;
 }
 
@@ -1139,23 +1151,23 @@ void Z_LogZoneHeap(memzone_t * zone, char* name) {
 	allocSize = 0;
 #endif
 	Com_sprintf(buf, sizeof(buf), "\r\n================\r\n%s log\r\n================\r\n", name);
-	FS_Write(buf, strlen(buf), logfile);
+	FS_Write(buf, (int)strlen(buf), logfile);
 	for (block = zone->blocklist.next; block->next != &zone->blocklist; block = block->next) {
-		if (block->tag) {
+		if (block->tag)
+		{
 #ifdef ZONE_DEBUG
 			ptr = ((char*)block) + sizeof(memblock_t);
 			j = 0;
 			for (i = 0; i < 20 && i < block->d.allocSize; i++) {
-				if (ptr[i] >= 32 && ptr[i] < 127) {
+				if (ptr[i] >= 32 && ptr[i] < 127)
 					dump[j++] = ptr[i];
-				}
 				else {
 					dump[j++] = '_';
 				}
 			}
 			dump[j] = '\0';
 			Com_sprintf(buf, sizeof(buf), "size = %8d: %s, line: %d (%s) [%s]\r\n", block->d.allocSize, block->d.file, block->d.line, block->d.label, dump);
-			FS_Write(buf, strlen(buf), logfile);
+			FS_Write(buf, (int)strlen(buf), logfile);
 			allocSize += block->d.allocSize;
 #endif
 			size += block->size;
@@ -1168,10 +1180,8 @@ void Z_LogZoneHeap(memzone_t * zone, char* name) {
 #else
 	allocSize = numBlocks * sizeof(memblock_t); // + 32 bit alignment
 #endif
-	Com_sprintf(buf, sizeof(buf), "%d %s memory in %d blocks\r\n", size, name, numBlocks);
-	FS_Write(buf, strlen(buf), logfile);
-	Com_sprintf(buf, sizeof(buf), "%d %s memory overhead\r\n", size - allocSize, name);
-	FS_Write(buf, strlen(buf), logfile);
+	Com_sprintf(buf, sizeof(buf), "%d %s memory in %d blocks\r\n", size, name, numBlocks); FS_Write(buf, (int)strlen(buf), logfile);
+	Com_sprintf(buf, sizeof(buf), "%d %s memory overhead\r\n", size - allocSize, name); FS_Write(buf, (int)strlen(buf), logfile);
 }
 
 /*
@@ -1215,6 +1225,7 @@ CopyString
 */
 char* CopyString(const char* in) {
 	char* out;
+	size_t len;
 
 	if (!in[0]) {
 		return ((char*)&emptystring) + sizeof(memblock_t);
@@ -1224,8 +1235,9 @@ char* CopyString(const char* in) {
 			return ((char*)&numberstring[in[0] - '0']) + sizeof(memblock_t);
 		}
 	}
-	out = S_Malloc(strlen(in) + 1);
-	Q_strncpyz(out, in, strlen(in) + 1);
+	len = strlen(in) + 1;
+	out = S_Malloc((int)len);
+	Q_strncpyz(out, in, (int)len);
 	return out;
 }
 
@@ -1498,19 +1510,18 @@ void Hunk_Log(void) {
 	size = 0;
 	numBlocks = 0;
 	Com_sprintf(buf, sizeof(buf), "\r\n================\r\nHunk log\r\n================\r\n");
-	FS_Write(buf, strlen(buf), logfile);
-	for (block = hunkblocks; block; block = block->next) {
+	FS_Write(buf, (int)strlen(buf), logfile);
+	for (block = hunkblocks; block; block = block->next)
+	{
 #ifdef HUNK_DEBUG
 		Com_sprintf(buf, sizeof(buf), "size = %8d: %s, line: %d (%s)\r\n", block->size, block->file, block->line, block->label);
-		FS_Write(buf, strlen(buf), logfile);
+		FS_Write(buf, (int)strlen(buf), logfile);
 #endif
 		size += block->size;
 		numBlocks++;
 	}
-	Com_sprintf(buf, sizeof(buf), "%d Hunk memory\r\n", size);
-	FS_Write(buf, strlen(buf), logfile);
-	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks);
-	FS_Write(buf, strlen(buf), logfile);
+	Com_sprintf(buf, sizeof(buf), "%d Hunk memory\r\n", size); FS_Write(buf, (int)strlen(buf), logfile);
+	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks); FS_Write(buf, (int)strlen(buf), logfile);
 }
 
 /*
@@ -1531,34 +1542,31 @@ void Hunk_SmallLog(void) {
 	size = 0;
 	numBlocks = 0;
 	Com_sprintf(buf, sizeof(buf), "\r\n================\r\nHunk Small log\r\n================\r\n");
-	FS_Write(buf, strlen(buf), logfile);
-	for (block = hunkblocks; block; block = block->next) {
-		if (block->printed) {
+	FS_Write(buf, (int)strlen(buf), logfile);
+	for (block = hunkblocks; block; block = block->next)
+	{
+		if (block->printed)
 			continue;
-		}
 		locsize = block->size;
-		for (block2 = block->next; block2; block2 = block2->next) {
-			if (block->line != block2->line) {
+		for (block2 = block->next; block2; block2 = block2->next)
+		{
+			if (block->line != block2->line)
 				continue;
-			}
-			if (Q_stricmp(block->file, block2->file)) {
+			if (Q_stricmp(block->file, block2->file))
 				continue;
-			}
 			size += block2->size;
 			locsize += block2->size;
 			block2->printed = qtrue;
 		}
 #ifdef HUNK_DEBUG
 		Com_sprintf(buf, sizeof(buf), "size = %8d: %s, line: %d (%s)\r\n", locsize, block->file, block->line, block->label);
-		FS_Write(buf, strlen(buf), logfile);
+		FS_Write(buf, (int)strlen(buf), logfile);
 #endif
 		size += block->size;
 		numBlocks++;
 	}
-	Com_sprintf(buf, sizeof(buf), "%d Hunk memory\r\n", size);
-	FS_Write(buf, strlen(buf), logfile);
-	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks);
-	FS_Write(buf, strlen(buf), logfile);
+	Com_sprintf(buf, sizeof(buf), "%d Hunk memory\r\n", size); FS_Write(buf, (int)strlen(buf), logfile);
+	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks); FS_Write(buf, (int)strlen(buf), logfile);
 }
 
 /*
@@ -2028,47 +2036,38 @@ void Com_QueueEvent(int time, sysEventType_t type, int value, int value2, int pt
 /*
 ================
 Com_GetSystemEvent
-
 ================
 */
 sysEvent_t Com_GetSystemEvent(void)
 {
 	sysEvent_t  ev;
 	char* s;
-
-	// return if we have data
 	if (eventHead > eventTail)
 	{
 		eventTail++;
 		return eventQueue[(eventTail - 1) & MASK_QUEUED_EVENTS];
 	}
-
-	// check for console commands
 	s = Sys_ConsoleInput();
 	if (s)
 	{
 		char* b;
-		int   len;
-
+		size_t len;
 		len = strlen(s) + 1;
-		b = Z_Malloc(len);
-		Q_strncpyz(b, s, len);
-		Com_QueueEvent(0, SE_CONSOLE, 0, 0, len, b);
+		b = Z_Malloc((int)len);
+		Q_strncpyz(b, s, (int)len);
+		Com_QueueEvent(0, SE_CONSOLE, 0, 0, (int)len, b);
 	}
-
-	// return if we have data
 	if (eventHead > eventTail)
 	{
 		eventTail++;
 		return eventQueue[(eventTail - 1) & MASK_QUEUED_EVENTS];
 	}
-
-	// create an empty event to return
 	memset(&ev, 0, sizeof(ev));
 	ev.evTime = Sys_Milliseconds();
 
 	return ev;
 }
+
 
 /*
 =================
@@ -2082,15 +2081,14 @@ sysEvent_t	Com_GetRealEvent(void) {
 	// either get an event from the system or the journal file
 	if (com_journal->integer == 2) {
 		r = FS_Read(&ev, sizeof(ev), com_journalFile);
-		if (r != sizeof(ev)) {
+		if (r != (int)sizeof(ev)) {
 			Com_Error(ERR_FATAL, "Error reading from journal file");
 		}
 		if (ev.evPtrLength) {
 			ev.evPtr = Z_Malloc(ev.evPtrLength);
-			r = FS_Read(ev.evPtr, ev.evPtrLength, com_journalFile);
-			if (r != ev.evPtrLength) {
+			r = FS_Read(ev.evPtr, (int)ev.evPtrLength, com_journalFile);
+			if (r != ev.evPtrLength)
 				Com_Error(ERR_FATAL, "Error reading from journal file");
-			}
 		}
 	}
 	else {
@@ -2099,14 +2097,13 @@ sysEvent_t	Com_GetRealEvent(void) {
 		// write the journal value out if needed
 		if (com_journal->integer == 1) {
 			r = FS_Write(&ev, sizeof(ev), com_journalFile);
-			if (r != sizeof(ev)) {
+			if (r != (int)sizeof(ev)) {
 				Com_Error(ERR_FATAL, "Error writing to journal file");
 			}
 			if (ev.evPtrLength) {
-				r = FS_Write(ev.evPtr, ev.evPtrLength, com_journalFile);
-				if (r != ev.evPtrLength) {
+				r = FS_Write(ev.evPtr, (int)ev.evPtrLength, com_journalFile);
+				if (r != ev.evPtrLength)
 					Com_Error(ERR_FATAL, "Error writing to journal file");
-				}
 			}
 		}
 	}
@@ -2592,7 +2589,6 @@ static void Com_WriteCDKey(const char* filename, const char* ikey) {
 	}
 
 	FS_Write(key, 16, f);
-
 	FS_Printf(f, "\n// generated by quake, do not modify\r\n");
 	FS_Printf(f, "// Do not give this file to ANYONE.\r\n");
 	FS_Printf(f, "// id Software and Activision will NOT ask you to send this file to them.\r\n");
@@ -3048,7 +3044,7 @@ void Com_WriteConfig_f(void) {
 	}
 
 	Q_strncpyz(filename, Cmd_Argv(1), sizeof(filename));
-	COM_DefaultExtension(filename, sizeof(filename), ".cfg");
+	COM_DefaultExtension(filename, (int)sizeof(filename), ".cfg");
 	Com_Printf("Writing %s.\n", filename);
 	Com_WriteConfigToFile(filename);
 }
@@ -3380,13 +3376,13 @@ static field_t* completionField;
 /*
 ===============
 FindMatches
-
 ===============
 */
 static void FindMatches(const char* s) {
-	int		i;
+	int i;
+	size_t compLen = strlen(completionString);
 
-	if (Q_stricmpn(s, completionString, strlen(completionString))) {
+	if (Q_stricmpn(s, completionString, (int)compLen)) {
 		return;
 	}
 	matchCount++;
@@ -3394,47 +3390,43 @@ static void FindMatches(const char* s) {
 		Q_strncpyz(shortestMatch, s, sizeof(shortestMatch));
 		return;
 	}
-
-	// cut shortestMatch to the amount common with s
 	for (i = 0; shortestMatch[i]; i++) {
-		if (i >= strlen(s)) {
+		size_t sLen = strlen(s);
+		if (i >= (int)sLen) {
 			shortestMatch[i] = 0;
 			break;
 		}
 
-		if (tolower(shortestMatch[i]) != tolower(s[i])) {
+		if (tolower((unsigned char)shortestMatch[i]) != tolower((unsigned char)s[i])) {
 			shortestMatch[i] = 0;
 		}
 	}
 }
-
 /*
 ===============
 PrintMatches
-
 ===============
 */
 static void PrintMatches(const char* s) {
-	if (!Q_stricmpn(s, shortestMatch, strlen(shortestMatch))) {
+	size_t smLen = strlen(shortestMatch);
+	if (!Q_stricmpn(s, shortestMatch, (int)smLen)) {
 		Com_Printf("    %s\n", s);
 	}
 }
-
 /*
 ===============
 PrintCvarMatches
-
 ===============
 */
 static void PrintCvarMatches(const char* s) {
 	char value[TRUNCATE_LENGTH];
+	size_t smLen = strlen(shortestMatch);
 
-	if (!Q_stricmpn(s, shortestMatch, strlen(shortestMatch))) {
+	if (!Q_stricmpn(s, shortestMatch, (int)smLen)) {
 		Com_TruncateLongString(value, Cvar_VariableString(s));
 		Com_Printf("    %s = \"%s\"\n", s, value);
 	}
 }
-
 /*
 ===============
 Field_FindFirstSeparator
@@ -3444,10 +3436,11 @@ static char* Field_FindFirstSeparator(char* s)
 {
 	int i;
 
-	for (i = 0; i < strlen(s); i++)
+	for (i = 0; s[i]; i++)
 	{
-		if (s[i] == ';')
+		if (s[i] == ';') {
 			return &s[i];
+		}
 	}
 
 	return NULL;
@@ -3460,17 +3453,22 @@ Field_Complete
 */
 static qboolean Field_Complete(void)
 {
+	size_t bufferLen;
+	size_t compLen;
 	int completionOffset;
 
 	if (matchCount == 0)
 		return qtrue;
 
-	completionOffset = strlen(completionField->buffer) - strlen(completionString);
+	bufferLen = strlen(completionField->buffer);
+	compLen = completionString ? strlen(completionString) : 0;
+
+	completionOffset = (int)(bufferLen - compLen);
 
 	Q_strncpyz(&completionField->buffer[completionOffset], shortestMatch,
 		sizeof(completionField->buffer) - completionOffset);
 
-	completionField->cursor = strlen(completionField->buffer);
+	completionField->cursor = (int)strlen(completionField->buffer);
 
 	if (matchCount == 1)
 	{
@@ -3483,7 +3481,6 @@ static qboolean Field_Complete(void)
 
 	return qfalse;
 }
-
 #ifndef DEDICATED
 /*
 ===============
@@ -3542,7 +3539,7 @@ void Field_CompleteCommand(char* cmd,
 		completionArgument++;
 	}
 	else
-		completionString = Cmd_Argv(completionArgument - 1);
+		completionString = Cmd_Argv(completionArgument - 1); // can be NULL
 
 #ifndef DEDICATED
 	// Unconditionally add a '\' to the start of the buffer
@@ -3552,7 +3549,7 @@ void Field_CompleteCommand(char* cmd,
 		if (completionField->buffer[0] != '/')
 		{
 			// Buffer is full, refuse to complete
-			if (strlen(completionField->buffer) + 1 >=
+			if ((int)strlen(completionField->buffer) + 1 >=
 				sizeof(completionField->buffer))
 				return;
 
@@ -3590,7 +3587,7 @@ void Field_CompleteCommand(char* cmd,
 		matchCount = 0;
 		shortestMatch[0] = 0;
 
-		if (strlen(completionString) == 0)
+		if (!completionString || strlen(completionString) == 0)
 			return;
 
 		if (doCommands)

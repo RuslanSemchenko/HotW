@@ -339,32 +339,32 @@ char *Com_MD5Text( const char *text, int length, const char *prefix, int prefix_
 	return final;
 }
 
-char *Com_MD5TextArray( const char **array, int length, const char *prefix, int prefix_len )
+char* Com_MD5TextArray(const char** array, int length, const char* prefix, int prefix_len)
 {
-	static char final[33] = {""};
-	unsigned char digest[16] = {""}; 
+	static char final[33] = { "" };
+	unsigned char digest[16] = { "" };
 	MD5_CTX md5;
 	int i;
-	
+
 	final[0] = '\0';
 
-	if( !array ) {
+	if (!array) {
 		return final;
 	}
-	if( length < 1 ) {
+	if (length < 1) {
 		return final;
 	}
 
 	MD5Init(&md5);
 
-	if( prefix_len && *prefix )
-		MD5Update(&md5 , (unsigned char *)prefix, prefix_len);
-	for(i = 0; i < length && array[i]; i++) {
-		MD5Update(&md5 , (unsigned char *)array[i], strlen(array[i]));
+	if (prefix_len && *prefix)
+		MD5Update(&md5, (unsigned char*)prefix, (unsigned int)prefix_len);
+	for (i = 0; i < length && array[i]; i++) {
+		MD5Update(&md5, (unsigned char*)array[i], (unsigned int)strlen(array[i]));
 	}
 	MD5Final(&md5, digest);
 	final[0] = '\0';
-	for(i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++) {
 		snprintf(final + strlen(final), sizeof(final) - strlen(final), "%02X", digest[i]);
 	}
 	return final;

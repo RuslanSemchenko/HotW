@@ -1,5 +1,3 @@
-
-
 /*****************************************************************************
  * name:		be_ai_char.c
  *
@@ -178,9 +176,9 @@ void BotDefaultCharacteristics(bot_character_t *ch, bot_character_t *defaultch)
 		else if (defaultch->c[i].type == CT_STRING)
 		{
 			ch->c[i].type = CT_STRING;
-			size_t len = strlen(defaultch->c[i].value.string) + 1;
+			unsigned long len = (unsigned long)strlen(defaultch->c[i].value.string) + 1;
 			ch->c[i].value.string = (char *) GetMemory(len);
-			Q_strncpyz(ch->c[i].value.string, defaultch->c[i].value.string, len);
+			Q_strncpyz(ch->c[i].value.string, defaultch->c[i].value.string, (int)len);
 		} //end else if
 	} //end for
 } //end of the function BotDefaultCharacteristics
@@ -283,8 +281,9 @@ bot_character_t *BotLoadCharacterFromFile(char *charfile, int skill)
 					else if (token.type == TT_STRING)
 					{
 						StripDoubleQuotes(token.string);
-						ch->c[index].value.string = (char *) GetMemory(strlen(token.string)+1);
-						Q_strncpyz(ch->c[index].value.string, token.string, strlen(token.string)+1);
+						unsigned long len = (unsigned long)strlen(token.string) + 1;
+						ch->c[index].value.string = (char *) GetMemory(len);
+						Q_strncpyz(ch->c[index].value.string, token.string, (int)len);
 						ch->c[index].type = CT_STRING;
 					} //end else if
 					else
@@ -534,8 +533,9 @@ int BotInterpolateCharacters(int handle1, int handle2, float desiredskill)
 		else if (ch1->c[i].type == CT_STRING)
 		{
 			out->c[i].type = CT_STRING;
-			out->c[i].value.string = (char *) GetMemory(strlen(ch1->c[i].value.string) + 1);
-			Q_strncpyz(out->c[i].value.string, ch1->c[i].value.string, strlen(ch1->c[i].value.string) + 1);
+			unsigned long len = (unsigned long)strlen(ch1->c[i].value.string) + 1;
+			out->c[i].value.string = (char *) GetMemory(len);
+			Q_strncpyz(out->c[i].value.string, ch1->c[i].value.string, (int)len);
 		} //end else if
 	} //end for
 	return handle;

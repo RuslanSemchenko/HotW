@@ -196,87 +196,83 @@ int	ParseHex( const char *text ) {
 VM_LoadSymbols
 ===============
 */
-void VM_LoadSymbols( vm_t *vm ) {
+void VM_LoadSymbols(vm_t* vm) {
 	union {
-		char	*c;
-		void	*v;
+		char* c;
+		void* v;
 	} mapfile;
-	char *text_p, *token;
-	char	name[MAX_QPATH];
-	char	symbols[MAX_QPATH];
-	vmSymbol_t	**prev, *sym;
-	int		count;
-	int		value;
-	int		chars;
-	int		segment;
-	int		numInstructions;
+	char* text_p, * token;
+	char name[MAX_QPATH];
+	char symbols[MAX_QPATH];
+	vmSymbol_t** prev, * sym;
+	int count;
+	int value;
+	size_t chars;   // исправлено: size_t вместо int
+	int segment;
+	int numInstructions;
 
-	// don't load symbols if not developer
-	if ( !com_developer->integer ) {
+	if (!com_developer->integer) {
 		return;
 	}
 
 	COM_StripExtension(vm->name, name, sizeof(name));
-	Com_sprintf( symbols, sizeof( symbols ), "vm/%s.map", name );
-	FS_ReadFile( symbols, &mapfile.v );
-	if ( !mapfile.c ) {
-		Com_Printf( "Couldn't load symbol file: %s\n", symbols );
+	Com_sprintf(symbols, sizeof(symbols), "vm/%s.map", name);
+	FS_ReadFile(symbols, &mapfile.v);
+	if (!mapfile.c) {
+		Com_Printf("Couldn't load symbol file: %s\n", symbols);
 		return;
 	}
 
 	numInstructions = vm->instructionCount;
 
-	// parse the symbols
 	text_p = mapfile.c;
 	prev = &vm->symbols;
 	count = 0;
 
-	while ( 1 ) {
-		token = COM_Parse( &text_p );
-		if ( !token[0] ) {
+	while (1) {
+		token = COM_Parse(&text_p);
+		if (!token[0]) {
 			break;
 		}
-		segment = ParseHex( token );
-		if ( segment ) {
-			COM_Parse( &text_p );
-			COM_Parse( &text_p );
-			continue;		// only load code segment values
+		segment = ParseHex(token);
+		if (segment) {
+			COM_Parse(&text_p);
+			COM_Parse(&text_p);
+			continue;
 		}
 
-		token = COM_Parse( &text_p );
-		if ( !token[0] ) {
-			Com_Printf( "WARNING: incomplete line at end of file\n" );
+		token = COM_Parse(&text_p);
+		if (!token[0]) {
+			Com_Printf("WARNING: incomplete line at end of file\n");
 			break;
 		}
-		value = ParseHex( token );
+		value = ParseHex(token);
 
-		token = COM_Parse( &text_p );
-		if ( !token[0] ) {
-			Com_Printf( "WARNING: incomplete line at end of file\n" );
+		token = COM_Parse(&text_p);
+		if (!token[0]) {
+			Com_Printf("WARNING: incomplete line at end of file\n");
 			break;
 		}
-		chars = strlen( token );
-		sym = Hunk_Alloc( sizeof( *sym ) + chars, h_high );
+		chars = strlen(token);
+		sym = Hunk_Alloc(sizeof(*sym) + chars, h_high);
 		*prev = sym;
 		prev = &sym->next;
 		sym->next = NULL;
 
-		// convert value from an instruction number to a code offset
-		if ( value >= 0 && value < numInstructions ) {
+		if (value >= 0 && value < numInstructions) {
 			value = vm->instructionPointers[value];
 		}
 
 		sym->symValue = value;
-		Q_strncpyz( sym->symName, token, chars + 1 );
+		Q_strncpyz(sym->symName, token, (int)chars + 1); // явное приведение
 
 		count++;
 	}
 
 	vm->numSymbols = count;
-	Com_Printf( "%i symbols parsed from %s\n", count, symbols );
-	FS_FreeFile( mapfile.v );
+	Com_Printf("%i symbols parsed from %s\n", count, symbols);
+	FS_FreeFile(mapfile.v);
 }
-
 /*
 ============
 VM_DllSyscall
