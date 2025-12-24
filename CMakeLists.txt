@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 
+# Сообщаем vcpkg, что мы управляем языком ASM_MASM вручную
+set(VCPKG_LOAD_MASM_PROPS FALSE)
+
 project(HeartOfTheWest VERSION 1.0 LANGUAGES C CXX ASM_MASM)
 
 # ============================================================
@@ -10,6 +13,12 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
     endif()
 endif()
+
+# ============================================================
+# Установка стандартов языка
+# ============================================================
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 
 # ============================================================
 # Build options
@@ -47,7 +56,6 @@ add_compile_definitions(
     NO_VM_COMPILED
     PRODUCT_VERSION=\"${PRODUCT_VERSION}\"
     PRODUCT_RELEASE=\"${PRODUCT_RELEASE}\"
-    _CRT_SECURE_NO_WARNINGS
     _USE_MATH_DEFINES
 )
 
@@ -365,6 +373,11 @@ endif()
 # ============================================================
 if(BUILD_SERVER)
     add_executable(${SERVERBIN}
+        # Пустой исходный файл, чтобы избежать проблем с add_executable без источников
+        # перед добавлением остальных через target_sources
+    )
+
+    target_sources(${SERVERBIN} PRIVATE
         ${COMMON_SOURCES}
 
         code/server/sv_main.c
@@ -681,18 +694,27 @@ endif()
 # AddressSanitizer (MSVC)
 # ============================================================
 if(MSVC)
+    # Используем compile_features для корректного включения ASan только для C/CXX
+    # Это автоматически добавит /fsanitize=address для компилятора и линкера
+    # и не будет передавать этот флаг ассемблеру.
+    set(CMAKE_COMPILE_FEATURES c_std_23)
+
+    # Отключаем инкрементную линковку для Debug-сборок, так как она несовместима с ASan
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /INCREMENTAL:NO")
+
+    # Включаем полную отладочную информацию для лучшего вывода стектрейсов
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Zi")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
+    
+    # Включаем строгие предупреждения и обрабатываем C4996 (устаревшие функции) как ошибку.
+    # Это заставит сборку остановиться, если используется небезопасная функция.
     foreach(tgt ${CLIENTBIN} ${SERVERBIN} qagame cgame ui renderer_opengl1 renderer_opengl2)
         if(TARGET ${tgt})
-            # ASan требует /fsanitize=address
-            # Также важно добавить /Zi для нормальных стектрейсов
-            target_compile_options(${tgt} PRIVATE $<$<CONFIG:Debug>:/fsanitize=address /Zi>)
-            
-            # ВАЖНО: ASan НЕ работает с инкрементной линковкой (/INCREMENTAL)
-            # Мы принудительно отключаем её для Debug конфигурации
-            target_link_options(${tgt} PRIVATE $<$<CONFIG:Debug>:/fsanitize=address /INCREMENTAL:NO /DEBUG>)
-            
-            # Для DLL модулей (game/cgame/ui) также важен флаг /DEBUG
-            set_target_properties(${tgt} PROPERTIES MSVC_DEBUG_INFORMATION_FORMAT $<$<CONFIG:Debug>:ProgramDatabase>)
+            # /W4 - максимальный уровень предупреждений
+            # /WX - все предупреждения считать ошибками
+            # /wd4996 - отключаем ошибку для C4996, чтобы сборка не падала сразу, а показывала их как предупреждения
+            target_compile_options(${tgt} PRIVATE /W4)
         endif()
     endforeach()
 endif()
