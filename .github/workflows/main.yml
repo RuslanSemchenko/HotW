@@ -30,7 +30,7 @@ jobs:
     # Используем переменную окружения вместо жесткого пути
     - name: Install dependencies via vcpkg
       run: |
-        vcpkg install opus opusfile curl sdl3 speex speexdsp libvorbis openal-soft freetype libjpeg-turbo freeglut --triplet x64-windows
+        vcpkg install opus opusfile curl sdl3 speex speexdsp libvorbis openal-soft freetype libjpeg-turbo freeglut assimp --triplet x64-windows
 
     # 3. Конфигурация и сборка
     - name: Build
