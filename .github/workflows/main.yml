@@ -1,0 +1,42 @@
+name: C/C++ CI Windows
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Кэширование vcpkg (сэкономит тебе кучу времени)
+    - name: Restore vcpkg binary cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          $env:USERPROFILE\AppData\Local\vcpkg\archives
+        key: ${{ runner.os }}-vcpkg-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
+
+    # 2. Установка зависимостей
+    # Используем переменную окружения вместо жесткого пути
+    - name: Install dependencies via vcpkg
+      run: |
+        vcpkg install opus opusfile curl sdl3 speex speexdsp libvorbis openal-soft freetype libjpeg-turbo freeglut --triplet x64-windows
+
+    # 3. Конфигурация и сборка
+    - name: Build
+      shell: pwsh
+      run: |
+        # Используем переменную окружения для пути к тулчейну
+        cmake -B build -S . `
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+        
+        # Сборка проекта (в режиме Release)
+        cmake --build build --config Debug
