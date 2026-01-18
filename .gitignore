@@ -1,0 +1,32 @@
+# Visual Studio временные файлы
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Папки сборки (CMake и VS)
+build/
+out/
+bin/
+
+# Логи и временные файлы компиляции
+*.log
+*.tlog
+*.obj
+*.exe
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+*.dll
+unsuccessfulbuild
+
+# vcpkg (если папка внутри проекта)
+vcpkg_installed/
+
+# Прочее
+.DS_Store
+/CMakeSettings.json
+/GAME/HotW
+/GAME/baseq3
